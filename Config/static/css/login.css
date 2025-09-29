@@ -1,0 +1,141 @@
+/* Estilos personalizados para el login */
+
+.bg-login-gradient {
+    background: linear-gradient(to right, #ff6b35, #ea580c);
+}
+
+.text-orange {
+    color: #ff6b35;
+}
+
+.btn-orange {
+    background-color: #ff6b35;
+    border-color: #ff6b35;
+    color: #fff;
+}
+
+.btn-orange:hover {
+    background-color: #ea580c;
+    border-color: #ea580c;
+    color: #fff;
+}
+
+/* Estilos del formulario */
+.login-form-container {
+    max-width: 448px;
+    margin: 0 auto;
+}
+
+.auth-form-control {
+    height: 50px;
+    border-radius: 8px;
+    font-size: 16px;
+    padding-left: 40px;
+}
+
+.auth-form-control:focus {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+}
+
+.auth-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    z-index: 10;
+}
+
+.auth-input-right-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    cursor: pointer;
+    z-index: 10;
+}
+
+/* Estilo del checkbox personalizado */
+.custom-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #000;
+    border-radius: 2px;
+}
+
+/* Estilos de botones sociales */
+.social-login-btn {
+    height: 38px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.social-login-btn:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.social-login-btn i.fa-google {
+    color: #ef4444;
+}
+
+.social-login-btn i.fa-facebook {
+    color: #2563eb;
+}
+
+/* Estilos para el divisor con texto */
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.divider span {
+    background-color: #fff;
+    padding: 0 8px;
+    color: #64748b;
+    position: relative;
+    z-index: 1;
+}
+
+/* Estilos para la sección de características */
+.feature-box {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.feature-box i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.feature-box p {
+    margin: 0;
+    color: white;
+    font-size: 14px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .login-form-container {
+        padding: 20px;
+    }
+}

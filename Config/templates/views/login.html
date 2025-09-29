@@ -1,0 +1,288 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block head %}
+<style>
+    .bg-login-image {
+        background: linear-gradient(to right, #ff6b35, #ea580c);
+    }
+    
+    .btn-login {
+        background-color: #ff6b35;
+        border-color: #ff6b35;
+    }
+    
+    .btn-login:hover {
+        background-color: #ea580c;
+        border-color: #ea580c;
+    }
+
+    .text-login {
+        color: #ff6b35;
+    }
+
+    .login-box {
+        box-shadow: 0px 25px 50px 0px rgba(0,0,0,0.25);
+        border-radius: 8px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        height: 50px;
+    }
+
+    .social-login-btn {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        height: 38px;
+    }
+
+    .divider-text {
+        position: relative;
+        text-align: center;
+        margin: 15px 0;
+    }
+
+    .divider-text span {
+        background-color: #fff;
+        padding: 0 15px;
+        color: #64748b;
+        position: relative;
+        z-index: 1;
+    }
+
+    .divider-text:after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        border-bottom: 1px solid #e5e7eb;
+        top: 50%;
+        left: 0;
+        z-index: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center min-vh-100 align-items-center">
+        <div class="col-xl-10">
+            <div class="card login-box o-hidden border-0 my-5">
+                <div class="card-body p-0">
+                    <div class="row">
+                        <!-- Lado derecho - Imagen y contenido -->
+                        <div class="col-lg-6 d-none d-lg-block bg-login-image">
+                            <div class="p-5 text-center text-white">
+                                <h4 class="mb-4">FerreJunior</h4>
+                                <p class="mb-4">Tu socio confiable en herramientas y materiales de construcción</p>
+                                
+                                <div class="mt-5">
+                                    <h4>Sobre nosotros</h4>
+                                    <p class="mt-4">En FerreJunior somos tu ferretería de confianza, ofreciendo herramientas, materiales y soluciones para el hogar, la construcción y la industria. Combinamos atención personalizada, productos de calidad y precios competitivos para ayudarte a hacer realidad tus proyectos, grandes o pequeños.</p>
+                                </div>
+
+                                <div class="row mt-5">
+                                    <div class="col-md-4">
+                                        <div class="p-3 mb-3" style="background: rgba(255,255,255,0.2); border-radius: 8px;">
+                                            <i class="fas fa-tools fa-2x mb-2"></i>
+                                            <p class="small mb-0">+5000 Productos</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 mb-3" style="background: rgba(255,255,255,0.2); border-radius: 8px;">
+                                            <i class="fas fa-truck fa-2x mb-2"></i>
+                                            <p class="small mb-0">Envío Gratis</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 mb-3" style="background: rgba(255,255,255,0.2); border-radius: 8px;">
+                                            <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                                            <p class="small mb-0">Garantía Total</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Lado izquierdo - Formulario -->
+                        <div class="col-lg-6">
+                            <div class="p-5">
+                                <div class="text-center">
+                                    <div class="mb-4">
+                                        <div style="background-color: #ff6b35; width: 60px; height: 60px; border-radius: 12px; margin: 0 auto;">
+                                            <i class="fas fa-wrench fa-2x text-white" style="line-height: 60px;"></i>
+                                        </div>
+                                    </div>
+                                    <h1 class="h4 text-gray-900 mb-2">Iniciar Sesión</h1>
+                                    <p class="mb-4 text-gray-600">Accede a tu cuenta de Ferretería Pro</p>
+                                </div>
+                                <form class="user">
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-medium">Correo Electrónico</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-envelope text-gray-600"></i>
+                                            </span>
+                                            <input type="email" class="form-control border-start-0" 
+                                                   placeholder="tu@email.com">
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-medium">Contraseña</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-lock text-gray-600"></i>
+                                            </span>
+                                            <input type="password" class="form-control border-start-0" 
+                                                   placeholder="••••••••">
+                                            <span class="input-group-text bg-white border-start-0">
+                                                <i class="fas fa-eye text-gray-600"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4 d-flex justify-content-between align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="rememberMe">
+                                            <label class="form-check-label text-gray-600" for="rememberMe">
+                                                Recordarme
+                                            </label>
+                                        </div>
+                                        <a href="#" class="text-login">¿Olvidaste tu contraseña?</a>
+                                    </div>
+                                    <button type="submit" class="btn btn-orange btn-user btn-block text-black" style="background-color: #ea580c;">
+                                        <i class="fas fa-sign-in-alt fa-sm fa-fw"></i>
+                                        <strong>Iniciar Sesión</strong>
+                                    </button>
+                                </form>
+                                <div class="divider-text">
+                                    <span>O continúa con</span>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-6">
+                                        <button class="btn social-login-btn w-100">
+                                            <i class="fab fa-google text-danger"></i>
+                                            <span class="ms-2 text-gray-600">Google</span>
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button class="btn social-login-btn w-100">
+                                            <i class="fab fa-facebook text-primary"></i>
+                                            <span class="ms-2 text-gray-600">Facebook</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-4">
+                                    <span class="text-gray-600">¿No tienes cuenta?</span>
+                                    <a href="#" class="text-login ms-1">Regístrate aquí</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Toggle password visibility
+        $('.fa-eye').click(function() {
+            var input = $(this).closest('.input-group').find('input');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                $(this).removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                $(this).removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+
+        // Validación del formulario
+        $('form.user').submit(function(e) {
+            e.preventDefault();
+            
+            var email = $('input[type="email"]').val();
+            var password = $('input[type="password"]').val();
+            var isValid = true;
+            
+            // Validar email
+            if (!email) {
+                showError('input[type="email"]', 'El correo electrónico es requerido');
+                isValid = false;
+            } else if (!isValidEmail(email)) {
+                showError('input[type="email"]', 'Por favor ingresa un correo electrónico válido');
+                isValid = false;
+            } else {
+                removeError('input[type="email"]');
+            }
+            
+            // Validar contraseña
+            if (!password) {
+                showError('input[type="password"]', 'La contraseña es requerida');
+                isValid = false;
+            } else if (password.length < 6) {
+                showError('input[type="password"]', 'La contraseña debe tener al menos 6 caracteres');
+                isValid = false;
+            } else {
+                removeError('input[type="password"]');
+            }
+            
+            // Si todo está validado, enviar el formulario
+            if (isValid) {
+                this.submit();
+            }
+        });
+
+        // Función para mostrar mensajes de error
+        function showError(selector, message) {
+            var input = $(selector);
+            var formGroup = input.closest('.input-group');
+            
+            // Remover mensaje de error anterior si existe
+            removeError(selector);
+            
+            // Agregar clase de error
+            input.addClass('is-invalid');
+            formGroup.after('<div class="invalid-feedback d-block">' + message + '</div>');
+        }
+
+        // Función para remover mensajes de error
+        function removeError(selector) {
+            var input = $(selector);
+            var formGroup = input.closest('.input-group');
+            
+            input.removeClass('is-invalid');
+            formGroup.next('.invalid-feedback').remove();
+        }
+
+        // Función para validar email
+        function isValidEmail(email) {
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Remover mensajes de error cuando el usuario comienza a escribir
+        $('input').on('input', function() {
+            removeError(this);
+        });
+
+        function showAlert(message, type) {
+            var alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+            var alert = $('<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                         message +
+                         '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                         '<span aria-hidden="true">&times;</span></button></div>');
+            
+            $('.container').prepend(alert);
+            
+            // Auto cerrar después de 5 segundos
+            setTimeout(function() {
+                alert.alert('close');
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}
