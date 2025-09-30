@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Empleado - FerreJunior</title>
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        .header-navbar {
+            background: white;
+            border-bottom: 4px solid #ff6b35;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
+            padding: 12px 0;
+        }
+        
+        .navbar-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .logo i {
+            margin-right: 12px;
+            color: #ff6b35;
+        }
+        
+        .employee-badge {
+            background: #ff8559;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .hero-banner {
+            background: linear-gradient(135deg, #ff8559 0%, #ff9a76 100%);
+            border-radius: 16px;
+            color: white;
+            padding: 48px;  
+            text-align: center;
+            margin: 32px 16px;
+        }
+        
+        .hero-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff6b35;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1), 0 20px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .stat-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .stat-change {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .stat-change.positive {
+            color: #10b981;
+        }
+        
+        .stat-change.negative {
+            color: #ef4444;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .action-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .action-title i {
+            margin-right: 8px;
+            color: #ff6b35;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        
+        .btn-action {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #ff6b35;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #e55a2b;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #ff6b35;
+            border: 2px solid #ff6b35;
+        }
+        
+        .btn-outline:hover {
+            background: #ff6b35;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .user-menu-btn:hover {
+            background: #f3f4f6;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .quick-stat {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .quick-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        
+        .quick-stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            margin-right: 12px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .priority-high {
+            background: #fff0eb;
+            color: #ff6b35;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .priority-medium {
+            background: #fff4e6;
+            color: #ff8559;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .priority-low {
+            background: #f0f9ff;
+            color: #0ea5e9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .task-meta {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header Navigation -->
+    <nav class="header-navbar">
+        <div class="navbar-content">
+            <div class="logo">
+                <i class="fas fa-tools"></i>
+                FerreJunior
+                <span class="employee-badge">EMPLEADO</span>
+            </div>
+            <div class="user-menu">
+                <button class="user-menu-btn">
+                    <i class="fas fa-user"></i>
+                    {{ current_user.username }}
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm ml-2">
+                        <i class="fas fa-sign-out-alt"></i> Salir
+                    </a>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="hero-title">Panel de Empleado</div>
+        <div class="hero-subtitle">Gestión operativa y atención al cliente</div>
+        <div class="quick-stats">
+            <div class="quick-stat">
+                <div class="quick-stat-value">8</div>
+                <div class="quick-stat-label">Tareas Hoy</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value">23</div>
+                <div class="quick-stat-label">Pedidos</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value">15</div>
+                <div class="quick-stat-label">Consultas</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value">95%</div>
+                <div class="quick-stat-label">Eficiencia</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Pedidos Procesados</div>
+                <div class="stat-icon" style="background-color: #fff0eb; color: #ff6b35;">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+            <div class="stat-value">23</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i> +15% vs ayer
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Productos Agregados</div>
+                <div class="stat-icon" style="background-color: #e6f7ff; color: #1890ff;">
+                    <i class="fas fa-box"></i>
+                </div>
+            </div>
+            <div class="stat-value">12</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i> +3 esta semana
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Consultas Atendidas</div>
+                <div class="stat-icon" style="background-color: #f0f9ff; color: #0ea5e9;">
+                    <i class="fas fa-comments"></i>
+                </div>
+            </div>
+            <div class="stat-value">15</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i> +20% esta semana
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Tiempo Respuesta</div>
+                <div class="stat-icon" style="background-color: #f0fdf4; color: #22c55e;">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <div class="stat-value">2.5m</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-down"></i> -30% más rápido
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Grid -->
+    <div class="actions-grid">
+        <div class="action-card">
+            <div class="action-title">
+                <i class="fas fa-shopping-cart"></i>
+                Gestión de Pedidos
+            </div>
+            <div class="action-buttons">
+                <button class="btn-action btn-primary" onclick="alert('Ver pedidos pendientes')">
+                    <i class="fas fa-clock"></i>
+                    Pendientes
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Procesar pedido')">
+                    <i class="fas fa-cog"></i>
+                    Procesar
+                </button>
+                <button class="btn-action btn-secondary" onclick="alert('Historial pedidos')">
+                    <i class="fas fa-history"></i>
+                    Historial
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Crear pedido')">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Pedido
+                </button>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-title">
+                <i class="fas fa-box"></i>
+                Inventario
+            </div>
+            <div class="action-buttons">
+                <button class="btn-action btn-primary" onclick="alert('Agregar producto')">
+                    <i class="fas fa-plus"></i>
+                    Agregar Producto
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Actualizar stock')">
+                    <i class="fas fa-edit"></i>
+                    Actualizar Stock
+                </button>
+                <button class="btn-action btn-secondary" onclick="alert('Ver inventario')">
+                    <i class="fas fa-list"></i>
+                    Ver Inventario
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Productos agotados')">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Agotados
+                </button>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-title">
+                <i class="fas fa-users"></i>
+                Atención al Cliente
+            </div>
+            <div class="action-buttons">
+                <button class="btn-action btn-primary" onclick="alert('Consultas pendientes')">
+                    <i class="fas fa-comments"></i>
+                    Consultas
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Chat en vivo')">
+                    <i class="fas fa-comment-dots"></i>
+                    Chat Vivo
+                </button>
+                <button class="btn-action btn-secondary" onclick="alert('Tickets soporte')">
+                    <i class="fas fa-ticket-alt"></i>
+                    Tickets
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Base conocimiento')">
+                    <i class="fas fa-book"></i>
+                    FAQ
+                </button>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-title">
+                <i class="fas fa-chart-line"></i>
+                Reportes
+            </div>
+            <div class="action-buttons">
+                <button class="btn-action btn-primary" onclick="alert('Reporte diario')">
+                    <i class="fas fa-calendar-day"></i>
+                    Diario
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Reporte semanal')">
+                    <i class="fas fa-calendar-week"></i>
+                    Semanal
+                </button>
+                <button class="btn-action btn-secondary" onclick="alert('Mi rendimiento')">
+                    <i class="fas fa-user-chart"></i>
+                    Mi Rendimiento
+                </button>
+                <button class="btn-action btn-outline" onclick="alert('Exportar datos')">
+                    <i class="fas fa-download"></i>
+                    Exportar
+                </button>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-title">
+                <i class="fas fa-tasks"></i>
+                Mis Tareas
+            </div>
+            <div>
+                <div class="task-item">
+                    <div>
+                        <div class="task-title">Procesar pedido #1234</div>
+                        <div class="task-meta">Vence en 2 horas</div>
+                    </div>
+                    <span class="priority-high">ALTA</span>
+                </div>
+                <div class="task-item">
+                    <div>
+                        <div class="task-title">Actualizar inventario herramientas</div>
+                        <div class="task-meta">Vence hoy</div>
+                    </div>
+                    <span class="priority-medium">MEDIA</span>
+                </div>
+                <div class="task-item">
+                    <div>
+                        <div class="task-title">Responder consulta cliente</div>
+                        <div class="task-meta">Vence mañana</div>
+                    </div>
+                    <span class="priority-low">BAJA</span>
+                </div>
+                <div class="task-item">
+                    <div>
+                        <div class="task-title">Revisar stock tornillos</div>
+                        <div class="task-meta">Esta semana</div>
+                    </div>
+                    <span class="priority-low">BAJA</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-title">
+                <i class="fas fa-bell"></i>
+                Actividad Reciente
+            </div>
+            <div>
+                <div class="activity-item">
+                    <i class="fas fa-shopping-cart text-success activity-icon"></i>
+                    <div class="activity-content">
+                        <div class="activity-title">Pedido #1235 procesado</div>
+                        <div class="activity-time">hace 10 minutos</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <i class="fas fa-box text-info activity-icon"></i>
+                    <div class="activity-content">
+                        <div class="activity-title">Stock actualizado: Martillos</div>
+                        <div class="activity-time">hace 25 minutos</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <i class="fas fa-comments text-primary activity-icon"></i>
+                    <div class="activity-content">
+                        <div class="activity-title">Consulta respondida</div>
+                        <div class="activity-time">hace 45 minutos</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <i class="fas fa-plus text-success activity-icon"></i>
+                    <div class="activity-content">
+                        <div class="activity-title">Nuevo producto agregado</div>
+                        <div class="activity-time">hace 1 hora</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <script>
+        // Add some interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects and animations
+            const cards = document.querySelectorAll('.stat-card, .action-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Task priority colors animation
+            const priorities = document.querySelectorAll('.priority-high, .priority-medium, .priority-low');
+            priorities.forEach(priority => {
+                priority.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1)';
+                });
+                priority.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

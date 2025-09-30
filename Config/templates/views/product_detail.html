@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - FerreJunior</title>
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            background-color: #f9fafb;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 80px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb-nav {
+            padding: 32px 16px 20px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .breadcrumb a {
+            color: #6b7280;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #ff6b35;
+        }
+
+        .breadcrumb .active {
+            color: #6b7480;
+        }
+
+        .breadcrumb-separator {
+            width: 7.5px;
+            height: 12px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 7.5 12"><path d="M1 1l5 5-5 5" stroke="%236b7280" stroke-width="1.5" fill="none"/></svg>') no-repeat center;
+        }
+
+        /* Main Content */
+        .product-detail {
+            display: flex;
+            gap: 48px;
+            padding: 0 16px 84px;
+        }
+
+        /* Product Image Section */
+        .product-image-section {
+            width: 600px;
+            flex-shrink: 0;
+        }
+
+        .product-image-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            padding: 22px;
+            height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-image-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .product-image-placeholder i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            color: #d1d5db;
+        }
+
+        .product-image-placeholder .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .product-image-placeholder .no-image-text {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        /* Product Info Section */
+        .product-info-section {
+            width: 600px;
+            flex-shrink: 0;
+        }
+
+        .product-header {
+            margin-bottom: 24px;
+        }
+
+        .stock-sku {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .stock-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .sku-text {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .product-title {
+            font-size: 30px;
+            font-weight: 400;
+            color: #111827;
+            line-height: 36px;
+            margin: 8px 0;
+        }
+
+        .product-brand {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            color: #fbbf24;
+            font-size: 18px;
+        }
+
+        .star.empty {
+            color: #e5e7eb;
+        }
+
+        .reviews-text {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Product Purchase Section */
+        .product-purchase {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 24px;
+        }
+
+        .price-section {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .current-price {
+            font-size: 30px;
+            font-weight: 400;
+            color: #ff6b35;
+        }
+
+        .original-price {
+            font-size: 18px;
+            color: #6b7280;
+            text-decoration: line-through;
+        }
+
+        .discount-badge {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .special-offer {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 36px;
+        }
+
+        .quantity-section {
+            margin-bottom: 36px;
+        }
+
+        .quantity-label {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            width: 126px;
+            height: 42px;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            color: #6b7280;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .quantity-input {
+            flex: 1;
+            border: none;
+            text-align: center;
+            font-size: 16px;
+            color: #111827;
+            background: white;
+            outline: none;
+        }
+
+        .purchase-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-add-cart {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            height: 48px;
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-cart:hover {
+            background: #e55a2b;
+        }
+
+        .btn-buy-now {
+            background: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            height: 48px;
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-buy-now:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-favorites {
+            background: none;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            height: 50px;
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-favorites:hover {
+            background: #f3f4f6;
+        }
+
+        /* Shipping Info */
+        .shipping-info {
+            background: #eff6ff;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .shipping-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .shipping-icon {
+            color: #3b82f6;
+            font-size: 16px;
+        }
+
+        .shipping-title {
+            font-size: 16px;
+            color: #111827;
+            font-weight: 400;
+        }
+
+        .shipping-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        /* Product Tabs */
+        .product-tabs {
+            margin: 72px 16px 0;
+        }
+
+        .tabs-nav {
+            display: flex;
+            border-bottom: 1px solid #ffffff;
+            background: white;
+            border-radius: 12px 12px 0 0;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 18px 0;
+            font-size: 16px;
+            font-weight: 400;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            color: #ff6b35;
+            border-bottom-color: #ff6b35;
+        }
+
+        .tab-description {
+            width: 123px;
+            text-align: center;
+        }
+
+        .tab-specifications {
+            width: 155px;
+            text-align: center;
+        }
+
+        .tab-reviews {
+            width: 102px;
+            text-align: center;
+        }
+
+        .tab-warranty {
+            width: 102px;
+            text-align: center;
+        }
+
+        .tab-content {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 24px;
+            min-height: 276px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #111827;
+            margin-bottom: 16px;
+            line-height: 28px;
+        }
+
+        .section-description {
+            font-size: 16px;
+            color: #374151;
+            line-height: 24px;
+            margin-bottom: 32px;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #374151;
+            line-height: 24px;
+        }
+
+        .feature-icon {
+            color: #10b981;
+            font-size: 14px;
+            width: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Related Products */
+        .related-products {
+            margin: 72px 16px 0;
+        }
+
+        .related-title {
+            font-size: 24px;
+            color: #111827;
+            margin-bottom: 32px;
+            line-height: 32px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 294px);
+            gap: 24px;
+        }
+
+        .product-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .product-card-image {
+            width: 260px;
+            height: 128px;
+            object-fit: cover;
+            margin: 17px;
+        }
+
+        .product-card-info {
+            padding: 0 17px 17px;
+        }
+
+        .product-card-title {
+            font-size: 16px;
+            color: #111827;
+            margin-bottom: 8px;
+            line-height: 24px;
+        }
+
+        .product-card-price {
+            font-size: 16px;
+            color: #ff6b35;
+            font-weight: 400;
+            line-height: 24px;
+        }
+
+        /* Home Icon */
+        .home-icon {
+            position: absolute;
+            top: 18px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .home-icon svg {
+            width: 32px;
+            height: 32px;
+            color: #374151;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 0 40px;
+            }
+            
+            .product-detail {
+                flex-direction: column;
+                gap: 32px;
+            }
+            
+            .product-image-section,
+            .product-info-section {
+                width: 100%;
+            }
+            
+            .products-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .product-purchase {
+                padding: 20px;
+            }
+            
+            .tabs-nav {
+                flex-wrap: wrap;
+            }
+            
+            .tab-button {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb-nav">
+            <div class="breadcrumb">
+                <a href="{{ url_for('client_dashboard') }}">Inicio</a>
+                <div class="breadcrumb-separator"></div>
+                <a href="{{ url_for('catalog') }}">Herramientas</a>
+                <div class="breadcrumb-separator"></div>
+                <a href="{{ url_for('catalog') }}">Taladros</a>
+                <div class="breadcrumb-separator"></div>
+                <span class="active">{{ product.name }}</span>
+            </div>
+        </div>
+
+        <!-- Home Icon -->
+        <a href="{{ url_for('client_dashboard') }}" class="home-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+        </a>
+
+        <!-- Product Detail Main Section -->
+        <div class="product-detail">
+            <!-- Product Image Section -->
+            <div class="product-image-section">
+                <div class="product-image-container">
+                    <div class="product-image-placeholder">
+                        <i class="fas fa-tools"></i>
+                        <div class="product-name">{{ product.name }}</div>
+                        <div class="no-image-text">Imagen no disponible</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Info Section -->
+            <div class="product-info-section">
+                <!-- Product Header -->
+                <div class="product-header">
+                    <div class="stock-sku">
+                        {% if product.in_stock %}
+                        <div class="stock-badge">En Stock</div>
+                        {% else %}
+                        <div class="stock-badge" style="background: #fee2e2; color: #991b1b;">Agotado</div>
+                        {% endif %}
+                        <span class="sku-text">{{ product.sku }}</span>
+                    </div>
+                    
+                    <h1 class="product-title">{{ product.name }}</h1>
+                    <p class="product-brand">Marca: {{ product.brand }}</p>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            {% for i in range(5) %}
+                                {% if i < product.rating %}
+                                    <i class="fas fa-star star"></i>
+                                {% else %}
+                                    <i class="far fa-star star empty"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="reviews-text">({{ product.reviews }} reseñas)</span>
+                    </div>
+                </div>
+
+                <!-- Product Purchase Section -->
+                <div class="product-purchase">
+                    <div class="price-section">
+                        <span class="current-price">${{ "{:,.0f}".format(product.price) }}</span>
+                        {% if product.price < 100000 %}
+                        <span class="original-price">${{ "{:,.0f}".format(product.price * 1.33) }}</span>
+                        <div class="discount-badge">25% OFF</div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if product.special_price %}
+                    <p class="special-offer">Precio especial {{ product.special_price }}</p>
+                    {% endif %}
+
+                    <div class="quantity-section">
+                        <label class="quantity-label">Cantidad:</label>
+                        <div class="quantity-controls">
+                            <button type="button" class="quantity-btn" onclick="decreaseQuantity()">-</button>
+                            <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="10">
+                            <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+                        </div>
+                    </div>
+
+                    <div class="purchase-buttons">
+                        <button class="btn-add-cart" onclick="addToCart({{ product.id }})">
+                            <i class="fas fa-shopping-cart"></i>
+                            Añadir al Carrito
+                        </button>
+                        <button class="btn-buy-now" onclick="buyNow({{ product.id }})">
+                            Comprar Ahora
+                        </button>
+                        <button class="btn-favorites" onclick="addToFavorites({{ product.id }})">
+                            <i class="far fa-heart"></i>
+                            Añadir a Favoritos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shipping Info -->
+                <div class="shipping-info">
+                    <div class="shipping-header">
+                        <i class="fas fa-truck shipping-icon"></i>
+                        <span class="shipping-title">Envío Gratis</span>
+                    </div>
+                    <p class="shipping-description">En pedidos superiores a $50. Entrega en 2-3 días hábiles.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Tabs -->
+        <div class="product-tabs">
+            <div class="tabs-nav">
+                <button class="tab-button tab-description active" onclick="showTab('description')">
+                    Descripción
+                </button>
+                <button class="tab-button tab-specifications" onclick="showTab('specifications')">
+                    Especificaciones
+                </button>
+                <button class="tab-button tab-reviews" onclick="showTab('reviews')">
+                    Reseñas
+                </button>
+                <button class="tab-button tab-warranty" onclick="showTab('warranty')">
+                    Garantía
+                </button>
+            </div>
+
+            <div class="tab-content">
+                <div id="description" class="tab-panel active">
+                    <h3 class="section-title">Descripción del Producto</h3>
+                    <p class="section-description">{{ product.description }}</p>
+                    
+                    {% if product.features %}
+                    <ul class="features-list">
+                        {% for feature in product.features %}
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            {{ feature }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <div id="specifications" class="tab-panel">
+                    <h3 class="section-title">Especificaciones Técnicas</h3>
+                    <div class="specifications-table">
+                        {% for key, value in product.specifications.items() %}
+                        <div class="spec-row" style="display: flex; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+                            <div style="width: 30%; font-weight: 500; color: #374151;">{{ key }}:</div>
+                            <div style="color: #6b7280;">{{ value }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="reviews" class="tab-panel">
+                    <h3 class="section-title">Reseñas de Clientes</h3>
+                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 8px; margin-bottom: 24px;">
+                        <div style="font-size: 48px; font-weight: 700; color: #ff6b35; margin-bottom: 8px;">{{ product.rating }}</div>
+                        <div class="stars" style="justify-content: center; margin-bottom: 8px;">
+                            {% for i in range(5) %}
+                                {% if i < product.rating %}
+                                    <i class="fas fa-star star"></i>
+                                {% else %}
+                                    <i class="far fa-star star empty"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span style="color: #6b7280; font-size: 14px;">Basado en {{ product.reviews }} reseñas</span>
+                    </div>
+                    
+                    <div class="reviews-list">
+                        <div style="padding: 16px 0; border-bottom: 1px solid #e5e7eb;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong>Carlos M.</strong>
+                                <div class="stars">
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                </div>
+                            </div>
+                            <p style="color: #6b7280; margin-bottom: 4px;">Excelente producto, muy buena calidad y potencia. Lo recomiendo.</p>
+                            <small style="color: #9ca3af;">Hace 2 semanas</small>
+                        </div>
+                        
+                        <div style="padding: 16px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong>Ana L.</strong>
+                                <div class="stars">
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="far fa-star star empty"></i>
+                                </div>
+                            </div>
+                            <p style="color: #6b7280; margin-bottom: 4px;">Muy buen producto, llegó rápido y en perfectas condiciones.</p>
+                            <small style="color: #9ca3af;">Hace 1 mes</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="warranty" class="tab-panel">
+                    <h3 class="section-title">Información de Garantía</h3>
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <div style="display: flex; align-items: flex-start; gap: 16px;">
+                            <i class="fas fa-shield-alt" style="color: #3b82f6; font-size: 20px; margin-top: 4px;"></i>
+                            <div>
+                                <h5 style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">Garantía del Fabricante</h5>
+                                <p style="color: #6b7280;">{{ product.specifications.Garantía }} de garantía contra defectos de fabricación.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 16px;">
+                            <i class="fas fa-tools" style="color: #3b82f6; font-size: 20px; margin-top: 4px;"></i>
+                            <div>
+                                <h5 style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">Servicio Técnico</h5>
+                                <p style="color: #6b7280;">Contamos con servicio técnico especializado y repuestos originales.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 16px;">
+                            <i class="fas fa-undo" style="color: #3b82f6; font-size: 20px; margin-top: 4px;"></i>
+                            <div>
+                                <h5 style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">Política de Devolución</h5>
+                                <p style="color: #6b7280;">30 días para devoluciones sin preguntas, producto en condiciones originales.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="related-products">
+            <h3 class="related-title">Productos Relacionados</h3>
+            <div class="products-grid">
+                {% for related in related_products %}
+                <div class="product-card" onclick="goToProduct({{ related.id }})">
+                    <img src="{{ url_for('static', filename='img/products/' + related.image) }}" 
+                         alt="{{ related.name }}" 
+                         class="product-card-image"
+                         onerror="this.src='https://via.placeholder.com/260x128/ff6b35/white?text={{ related.name }}'">
+                    <div class="product-card-info">
+                        <h6 class="product-card-title">{{ related.name }}</h6>
+                        <p class="product-card-price">${{ "{:,.0f}".format(related.price) }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quantity Controls
+        function increaseQuantity() {
+            const quantityInput = document.getElementById('quantity');
+            const currentValue = parseInt(quantityInput.value);
+            const maxValue = parseInt(quantityInput.max);
+            
+            if (currentValue < maxValue) {
+                quantityInput.value = currentValue + 1;
+            }
+        }
+
+        function decreaseQuantity() {
+            const quantityInput = document.getElementById('quantity');
+            const currentValue = parseInt(quantityInput.value);
+            const minValue = parseInt(quantityInput.min);
+            
+            if (currentValue > minValue) {
+                quantityInput.value = currentValue - 1;
+            }
+        }
+
+        // Tab Functionality
+        function showTab(tabName) {
+            // Hide all tab panels
+            const panels = document.querySelectorAll('.tab-panel');
+            panels.forEach(panel => panel.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab panel
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Product Actions
+        function addToCart(productId) {
+            const quantity = document.getElementById('quantity').value;
+            console.log(`Agregando producto ${productId} con cantidad ${quantity} al carrito`);
+            showNotification('Producto agregado al carrito exitosamente', 'success');
+        }
+
+        function buyNow(productId) {
+            const quantity = document.getElementById('quantity').value;
+            console.log(`Comprando producto ${productId} con cantidad ${quantity}`);
+            showNotification('Redirigiendo al checkout...', 'info');
+        }
+
+        function addToFavorites(productId) {
+            const heartIcon = document.querySelector('.btn-favorites i');
+            
+            if (heartIcon.classList.contains('far')) {
+                heartIcon.classList.remove('far');
+                heartIcon.classList.add('fas');
+                heartIcon.style.color = '#ff6b35';
+                showNotification('Producto agregado a favoritos', 'success');
+            } else {
+                heartIcon.classList.remove('fas');
+                heartIcon.classList.add('far');
+                heartIcon.style.color = '';
+                showNotification('Producto removido de favoritos', 'info');
+            }
+        }
+
+        function goToProduct(productId) {
+            window.location.href = `/product/${productId}`;
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'info' ? '#3b82f6' : '#ef4444'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 9999;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+                font-size: 14px;
+                font-weight: 500;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FerreJunior - Tu Ferretería de Confianza</title>
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        .hero-banner {
+            background: linear-gradient(135deg, #1e40af 0%, #ff6b35 100%);
+            border-radius: 16px;
+            color: white;
+            padding: 48px;
+            text-align: center;
+            margin: 32px 16px;
+        }
+        
+        .hero-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .btn-catalog {
+            background: white;
+            color: #ff6b35;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(294px, 1fr));
+            gap: 24px;
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 192px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .product-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #000;
+        }
+        
+        .product-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+        
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 16px;
+        }
+        
+        .btn-add-cart {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            float: right;
+        }
+        
+        .btn-add-cart:hover {
+            background: #e55a2b;
+        }
+        
+        /* Carrito lateral */
+        .cart-sidebar {
+            position: fixed;
+            right: -500px;
+            top: 0;
+            width: 480px;
+            height: 100vh;
+            background: white;
+            box-shadow: -25px 0 50px rgba(0,0,0,0.25);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .cart-sidebar.open {
+            right: 0;
+        }
+        
+        .cart-header {
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .cart-items {
+            padding: 24px;
+            max-height: 428px;
+            overflow-y: auto;
+        }
+        
+        .cart-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .cart-item-image {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 16px;
+        }
+        
+        .cart-item-details {
+            flex: 1;
+        }
+        
+        .cart-item-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .cart-item-code {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quantity-btn.minus {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .quantity-btn.plus {
+            background: #ff6b35;
+            color: white;
+        }
+        
+        .cart-item-price {
+            font-weight: bold;
+            color: #ff6b35;
+            font-size: 16px;
+        }
+        
+        .cart-summary {
+            padding: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .btn-checkout {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        
+        .btn-continue {
+            background: transparent;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        
+        .cart-overlay.show {
+            display: block;
+        }
+        
+        .header-navbar {
+            background: white;
+            border-bottom: 4px solid #ff6b35;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
+            padding: 12px 0;
+        }
+        
+        .navbar-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .logo i {
+            margin-right: 12px;
+            color: #ff6b35;
+        }
+        
+        .cart-button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+        
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .user-menu {
+            position: relative;
+            margin-left: 16px;
+        }
+        
+        .user-menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            color: #6b7280;
+        }
+        
+        .user-menu-btn:hover {
+            background: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-navbar">
+        <div class="navbar-content">
+            <div class="logo">
+                <i class="fas fa-wrench"></i>
+                FerreJunior
+            </div>
+            
+            <div style="display: flex; align-items: center;">
+                <button class="cart-button" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Carrito</span>
+                    <div class="cart-badge" id="cartBadge">3</div>
+                </button>
+                
+                <div class="user-menu">
+                    <button class="user-menu-btn" onclick="toggleUserMenu()">
+                        <i class="fas fa-user-circle fa-lg"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" id="userMenu" style="display: none;">
+                        <a class="dropdown-item" href="{{ url_for('profile') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2"></i>
+                            Mi Perfil
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-history fa-sm fa-fw mr-2"></i>
+                            Mis Pedidos  
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i>
+                            Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Banner -->
+        <section class="hero-banner">
+            <h1 class="hero-title">Todo para tu Proyecto</h1>
+            <p class="hero-subtitle">Las mejores herramientas y materiales de construcción</p>
+            <a href="{{ url_for('catalog') }}" class="btn-catalog">Ver Catálogo</a>
+        </section>
+
+        <!-- Products Grid -->
+        <section id="products" class="product-grid">
+            <div class="product-card" onclick="goToProduct(2)">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Taladro Percutor 18V</h3>
+                <p class="product-description">ProDrill - Función percutor incluida</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$95.000</span>
+                    <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('taladro-percutor', 'Taladro Percutor 18V', 95000, 'PRO002')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card" onclick="goToProduct(4)">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Caja de Herramientas</h3>
+                <p class="product-description">ToolBox Pro - Múltiples compartimentos</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$35.000</span>
+                    <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('caja-herr', 'Caja de Herramientas', 35000, 'BOX004')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card" onclick="goToProduct(3)">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Set de Brocas 20 pzs</h3>
+                <p class="product-description">DrillMaster - Acero HSS con estuche</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$24.999</span>
+                    <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('set-brocas', 'Set de Brocas 20 pzs', 24999, 'BIT003')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card" onclick="goToProduct(1)">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Atornillador 12V</h3>
+                <p class="product-description">PowerTech Pro - Motor sin escobillas</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$60.000</span>
+                    <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('atornillador-12v', 'Atornillador 12V', 60000, 'SCW001')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- More Products Section -->
+        <section class="product-grid" style="margin-top: 64px;">
+            <div class="product-card">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Taladro Inalámbrico 18V</h3>
+                <p class="product-description">Potente taladro con batería de larga duración</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$89.99</span>
+                    <button class="btn-add-cart" onclick="addToCart('taladro-18v', 'Taladro Inalámbrico 18V', 89.99, 'DRL005')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Juego de Llaves 24pcs</h3>
+                <p class="product-description">Set completo de llaves métricas e inglesas</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$49.99</span>
+                    <button class="btn-add-cart" onclick="addToCart('llaves-24', 'Juego de Llaves 24pcs', 49.99, 'KEY006')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Martillo de Acero 16oz</h3>
+                <p class="product-description">Martillo profesional con mango ergonómico</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$24.99</span>
+                    <button class="btn-add-cart" onclick="addToCart('martillo-16', 'Martillo de Acero 16oz', 24.99, 'HAM007')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <div class="no-image-text">Sin imagen</div>
+                </div>
+                <h3 class="product-title">Set Destornilladores 12pcs</h3>
+                <p class="product-description">Juego completo de destornilladores profesionales</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="product-price">$34.99</span>
+                    <button class="btn-add-cart" onclick="addToCart('dest-12', 'Set Destornilladores 12pcs', 34.99, 'SCR008')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Wholesale Button -->
+        <div style="text-align: center; padding: 32px;">
+            <button style="background: #ff6b35; color: white; border: none; padding: 14px 48px; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer;">
+                Comprar al X mayor
+            </button>
+        </div>
+    </main>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2 style="font-size: 20px; font-weight: bold; margin: 0;">Carrito de Compras</h2>
+            <button onclick="toggleCart()" style="background: none; border: none; font-size: 20px; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="cart-items" id="cartItems">
+            <!-- Los items del carrito se insertan aquí dinámicamente -->
+        </div>
+        
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span style="color: #6b7280;">Subtotal:</span>
+                <span style="font-weight: 600;" id="subtotal">$0.00</span>
+            </div>
+            <div class="summary-row">
+                <span style="color: #6b7280;">Envío:</span>
+                <span style="font-weight: 600;" id="shipping">$8.99</span>
+            </div>
+            <div class="summary-row">
+                <span style="color: #6b7280;">Impuestos:</span>
+                <span style="font-weight: 600;" id="taxes">$0.00</span>
+            </div>
+            <div class="summary-total">
+                <span>Total:</span>
+                <span style="color: #ff6b35;" id="total">$0.00</span>
+            </div>
+            
+            <div style="margin-top: 24px;">
+                <button class="btn-checkout" onclick="proceedCheckout()">
+                    Proceder al Pago
+                </button>
+                <button class="btn-continue" onclick="toggleCart()">
+                    Seguir Comprando
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <script>
+        // Shopping Cart State
+        let cart = [
+            {
+                id: 'martillo-carp',
+                name: 'Martillo de Carpintero',
+                code: 'HAM001',
+                price: 24.99,
+                quantity: 2,
+                image: 'https://via.placeholder.com/64x64/ff6b35/white?text=Martillo'
+            },
+            {
+                id: 'dest-set',
+                name: 'Set de Destornilladores',
+                code: 'SCR002',
+                price: 18.50,
+                quantity: 1,
+                image: 'https://via.placeholder.com/64x64/ff6b35/white?text=Destornilladores'
+            },
+            {
+                id: 'taladro-elec',
+                name: 'Taladro Eléctrico',
+                code: 'DRL003',
+                price: 89.99,
+                quantity: 1,
+                image: 'https://via.placeholder.com/64x64/ff6b35/white?text=Taladro'
+            }
+        ];
+
+        // Cart Functions
+        function toggleCart() {
+            const sidebar = document.getElementById('cartSidebar');
+            const overlay = document.getElementById('cartOverlay');
+            
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('show');
+                renderCart();
+            }
+        }
+
+        function addToCart(id, name, price, code) {
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: id,
+                    name: name,
+                    code: code,
+                    price: price,
+                    quantity: 1,
+                    image: `https://via.placeholder.com/64x64/ff6b35/white?text=${name.replace(/ /g, '+')}`
+                });
+            }
+            
+            updateCartBadge();
+            
+            // Show success message
+            showNotification(`${name} agregado al carrito`);
+        }
+
+        function updateQuantity(id, change) {
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    removeFromCart(id);
+                } else {
+                    renderCart();
+                    updateCartBadge();
+                }
+            }
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            renderCart();
+            updateCartBadge();
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cartItems');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        <i class="fas fa-shopping-cart fa-3x" style="margin-bottom: 16px;"></i>
+                        <p>Tu carrito está vacío</p>
+                    </div>
+                `;
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">${item.name}</div>
+                            <div class="cart-item-code">Código: ${item.code}</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn minus" onclick="updateQuantity('${item.id}', -1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <span style="font-weight: 600; margin: 0 8px;">${item.quantity}</span>
+                                    <button class="quantity-btn plus" onclick="updateQuantity('${item.id}', 1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="cart-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shipping = cart.length > 0 ? 8.99 : 0;
+            const taxes = subtotal * 0.08; // 8% tax
+            const total = subtotal + shipping + taxes;
+            
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('shipping').textContent = `$${shipping.toFixed(2)}`;
+            document.getElementById('taxes').textContent = `$${taxes.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function updateCartBadge() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const badge = document.getElementById('cartBadge');
+            badge.textContent = totalItems;
+            badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+
+        function proceedCheckout() {
+            if (cart.length === 0) {
+                showNotification('Tu carrito está vacío', 'error');
+                return;
+            }
+            
+            // Aquí implementarías la lógica de checkout
+            showNotification('Redirigiendo al checkout...', 'success');
+            
+            // Simular redirección después de 2 segundos
+            setTimeout(() => {
+                alert('Función de checkout en desarrollo');
+            }, 1000);
+        }
+
+        function showNotification(message, type = 'success') {
+            // Crear notificación toast
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : '#ef4444'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 9999;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Animar entrada
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remover después de 3 segundos
+            setTimeout(() => {
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Initialize cart on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartBadge();
+            renderCart();
+            
+            // Close user menu when clicking outside
+            document.addEventListener('click', function(e) {
+                const menu = document.getElementById('userMenu');
+                const btn = document.querySelector('.user-menu-btn');
+                
+                if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                    menu.style.display = 'none';
+                }
+            });
+        });
+
+        // El botón de catálogo ahora redirige a la página del catálogo
+        // No necesita smooth scroll ya que va a otra página
+
+        function goToProduct(productId) {
+            // Redirigir a la página de detalle del producto
+            window.location.href = "{{ url_for('product_detail', product_id=0) }}".replace('0', productId);
+        }
+    </script>
+
+</body>
+</html>

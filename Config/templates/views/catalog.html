@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - FerreJunior</title>
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            height: 65px;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #1a2b3d;
+            text-decoration: none;
+        }
+
+        .logo i {
+            margin-right: 8px;
+            color: #ff6b35;
+            font-size: 24px;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .icon-btn {
+            width: 24px;
+            height: 24px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .icon-btn:hover {
+            color: #ff6b35;
+        }
+
+        .home-icon {
+            width: 48px;
+            height: 48px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .home-icon:hover {
+            background: #ff6b35;
+            color: white;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 16px;
+            display: flex;
+            gap: 32px;
+        }
+
+        /* Sidebar Filters */
+        .sidebar {
+            width: 288px;
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            height: fit-content;
+            position: sticky;
+            top: 97px;
+        }
+
+        .sidebar h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a2b3d;
+            margin: 0 0 24px 0;
+        }
+
+        .filter-section {
+            margin-bottom: 32px;
+        }
+
+        .filter-section h4 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #374151;
+            margin: 0 0 16px 0;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .filter-option input[type="checkbox"] {
+            width: 13px;
+            height: 13px;
+            border: 0.5px solid #000;
+            border-radius: 1px;
+            cursor: pointer;
+        }
+
+        .filter-option input[type="radio"] {
+            width: 13px;
+            height: 13px;
+            border: 0.5px solid #000;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .filter-option label {
+            font-size: 16px;
+            color: #374151;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .apply-filters-btn {
+            width: 100%;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .apply-filters-btn:hover {
+            background: #e55a2b;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+        }
+
+        /* Search and Sort Bar */
+        .search-sort-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .search-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 50px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0 16px 0 48px;
+            font-size: 16px;
+            color: #111827;
+        }
+
+        .search-input::placeholder {
+            color: #adaebc;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #6b7280;
+        }
+
+        .sort-select {
+            width: 216px;
+            height: 47px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 16px;
+            color: #111827;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .product-image-container {
+            background: #f3f4f6;
+            height: 293px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .product-image {
+            width: 261px;
+            height: 261px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .product-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin: 0 0 8px 0;
+            line-height: 24px;
+        }
+
+        .product-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0 0 16px 0;
+            line-height: 20px;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+
+        .add-to-cart-btn {
+            width: 50px;
+            height: 40px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .add-to-cart-btn:hover {
+            background: #e55a2b;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+        }
+
+        .pagination-btn {
+            width: 42px;
+            height: 42px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .pagination-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .pagination-btn.active {
+            background: #ff6b35;
+            color: white;
+            border-color: #ff6b35;
+        }
+
+        .pagination-btn.prev,
+        .pagination-btn.next {
+            width: 36px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 16px;
+                gap: 24px;
+            }
+
+            .sidebar {
+                width: 100%;
+                order: 2;
+            }
+
+            .content-area {
+                order: 1;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-sort-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .sort-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="{{ url_for('client_dashboard') }}" class="logo">
+                <i class="fas fa-tools"></i>
+                FerreJunior
+            </a>
+            
+            <div class="header-icons">
+                <i class="fas fa-shopping-cart icon-btn" onclick="openCart()"></i>
+                <i class="fas fa-user icon-btn" onclick="openUserMenu()"></i>
+                <a href="{{ url_for('client_dashboard') }}" class="home-icon">
+                    <i class="fas fa-home"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar Filters -->
+        <aside class="sidebar">
+            <h3>Filtros</h3>
+            
+            <!-- Categorías -->
+            <div class="filter-section">
+                <h4>Categorías</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="herramientas-manuales">
+                        <label for="herramientas-manuales">Herramientas Manuales</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="herramientas-electricas">
+                        <label for="herramientas-electricas">Herramientas Eléctricas</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tornilleria">
+                        <label for="tornilleria">Tornillería</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="pinturas">
+                        <label for="pinturas">Pinturas</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="plomeria">
+                        <label for="plomeria">Plomería</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="electricidad">
+                        <label for="electricidad">Electricidad</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Precio -->
+            <div class="filter-section">
+                <h4>Precio</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-0-50">
+                        <label for="price-0-50">Menos de $50</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-50-100">
+                        <label for="price-50-100">$50 - $100</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-100-200">
+                        <label for="price-100-200">$100 - $200</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-200-plus">
+                        <label for="price-200-plus">Más de $200</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marca -->
+            <div class="filter-section">
+                <h4>Marca</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="dewalt">
+                        <label for="dewalt">DeWalt</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="black-decker">
+                        <label for="black-decker">Black & Decker</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="stanley">
+                        <label for="stanley">Stanley</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bosch">
+                        <label for="bosch">Bosch</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="apply-filters-btn" onclick="applyFilters()">
+                Aplicar Filtros
+            </button>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- Search and Sort Bar -->
+            <div class="search-sort-bar">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Buscar productos..." id="searchInput">
+                </div>
+                <select class="sort-select" id="sortSelect">
+                    <option value="">Ordenar por</option>
+                    <option value="name-asc">Nombre A-Z</option>
+                    <option value="name-desc">Nombre Z-A</option>
+                    <option value="price-asc">Precio menor a mayor</option>
+                    <option value="price-desc">Precio mayor a menor</option>
+                    <option value="newest">Más recientes</option>
+                </select>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Fila 1 -->
+                <div class="product-card" onclick="goToProduct(1)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Atornillador 12V</h3>
+                        <p class="product-description">PowerTech Pro - Motor sin escobillas</p>
+                        <div class="product-footer">
+                            <span class="product-price">$60.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('atornillador-12v')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(2)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Taladro Percutor 18V</h3>
+                        <p class="product-description">ProDrill - Función percutor incluida</p>
+                        <div class="product-footer">
+                            <span class="product-price">$95.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('taladro-percutor')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(3)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Set de Brocas 20 pzs</h3>
+                        <p class="product-description">DrillMaster - Acero HSS con estuche</p>
+                        <div class="product-footer">
+                            <span class="product-price">$24.999</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('set-brocas')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 2 -->
+                <div class="product-card" onclick="goToProduct(4)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Caja de Herramientas</h3>
+                        <p class="product-description">ToolBox Pro - Múltiples compartimentos</p>
+                        <div class="product-footer">
+                            <span class="product-price">$35.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('caja-herramientas')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(5)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Gafas de Seguridad</h3>
+                        <p class="product-description">SafeVision - Protección UV 400</p>
+                        <div class="product-footer">
+                            <span class="product-price">$12.500</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('gafas-seguridad')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(1)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Atornillador 12V</h3>
+                        <p class="product-description">PowerTech Pro - En oferta especial</p>
+                        <div class="product-footer">
+                            <span class="product-price">$60.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('atornillador-12v-2')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="pagination">
+                <button class="pagination-btn prev" onclick="changePage('prev')">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="pagination-btn active" onclick="changePage(1)">1</button>
+                <button class="pagination-btn" onclick="changePage(2)">2</button>
+                <button class="pagination-btn" onclick="changePage(3)">3</button>
+                <button class="pagination-btn next" onclick="changePage('next')">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </nav>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    
+    <script>
+        // Variables globales
+        let currentPage = 1;
+        let currentFilters = {};
+        let currentSort = '';
+        let allProducts = [];
+
+        // Datos de productos simulados
+        const products = [
+            { id: 'taladro-dewalt', name: 'Taladro Eléctrico DeWalt', description: 'Taladro percutor 750W con cable', price: 89.99, category: 'herramientas-electricas', brand: 'dewalt', image: 'taladro-dewalt.jpg' },
+            { id: 'martillo-stanley', name: 'Martillo Stanley', description: 'Martillo de carpintero 16oz', price: 24.99, category: 'herramientas-manuales', brand: 'stanley', image: 'martillo-stanley.jpg' },
+            { id: 'set-destornilladores', name: 'Set Destornilladores', description: 'Kit 12 piezas con estuche', price: 34.99, category: 'herramientas-manuales', brand: 'stanley', image: 'set-destornilladores.jpg' },
+            { id: 'pintura-latex', name: 'Pintura Látex Blanca', description: 'Galón pintura interior lavable', price: 45.99, category: 'pinturas', brand: 'otro', image: 'pintura-latex.jpg' },
+            { id: 'set-llaves', name: 'Set Llaves Inglesas', description: 'Kit 8 piezas acabado cromado', price: 52.99, category: 'herramientas-manuales', brand: 'stanley', image: 'set-llaves.jpg' },
+            { id: 'cinta-metrica', name: 'Cinta Métrica', description: '5 metros con freno automático', price: 18.99, category: 'herramientas-manuales', brand: 'stanley', image: 'cinta-metrica.jpg' }
+        ];
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            allProducts = products;
+            setupEventListeners();
+            renderProducts();
+        });
+
+        function setupEventListeners() {
+            // Búsqueda
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                searchProducts(e.target.value);
+            });
+
+            // Ordenamiento
+            document.getElementById('sortSelect').addEventListener('change', function(e) {
+                currentSort = e.target.value;
+                renderProducts();
+            });
+
+            // Filtros
+            const checkboxes = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    collectFilters();
+                });
+            });
+        }
+
+        function searchProducts(query) {
+            if (!query) {
+                allProducts = products;
+            } else {
+                allProducts = products.filter(product => 
+                    product.name.toLowerCase().includes(query.toLowerCase()) ||
+                    product.description.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+            renderProducts();
+        }
+
+        function collectFilters() {
+            const filters = {};
+            
+            // Categorías
+            const categories = [];
+            document.querySelectorAll('[id^="herramientas"], [id^="tornilleria"], [id^="pinturas"], [id^="plomeria"], [id^="electricidad"]').forEach(cb => {
+                if (cb.checked) categories.push(cb.id);
+            });
+            if (categories.length > 0) filters.categories = categories;
+
+            // Precio
+            const priceFilter = document.querySelector('input[name="price"]:checked');
+            if (priceFilter) filters.price = priceFilter.id;
+
+            // Marca
+            const brands = [];
+            document.querySelectorAll('[id^="dewalt"], [id^="black-decker"], [id^="stanley"], [id^="bosch"]').forEach(cb => {
+                if (cb.checked) brands.push(cb.id);
+            });
+            if (brands.length > 0) filters.brands = brands;
+
+            currentFilters = filters;
+        }
+
+        function applyFilters() {
+            let filteredProducts = products;
+
+            // Aplicar filtros de categoría
+            if (currentFilters.categories) {
+                filteredProducts = filteredProducts.filter(product => 
+                    currentFilters.categories.includes(product.category)
+                );
+            }
+
+            // Aplicar filtros de precio
+            if (currentFilters.price) {
+                filteredProducts = filteredProducts.filter(product => {
+                    const price = product.price;
+                    switch(currentFilters.price) {
+                        case 'price-0-50': return price < 50;
+                        case 'price-50-100': return price >= 50 && price <= 100;
+                        case 'price-100-200': return price > 100 && price <= 200;
+                        case 'price-200-plus': return price > 200;
+                        default: return true;
+                    }
+                });
+            }
+
+            // Aplicar filtros de marca
+            if (currentFilters.brands) {
+                filteredProducts = filteredProducts.filter(product => 
+                    currentFilters.brands.includes(product.brand)
+                );
+            }
+
+            allProducts = filteredProducts;
+            renderProducts();
+            
+            // Mostrar notificación
+            showNotification(`Se encontraron ${filteredProducts.length} productos`, 'success');
+        }
+
+        function renderProducts() {
+            let productsToRender = [...allProducts];
+
+            // Aplicar ordenamiento
+            if (currentSort) {
+                productsToRender.sort((a, b) => {
+                    switch(currentSort) {
+                        case 'name-asc': return a.name.localeCompare(b.name);
+                        case 'name-desc': return b.name.localeCompare(a.name);
+                        case 'price-asc': return a.price - b.price;
+                        case 'price-desc': return b.price - a.price;
+                        default: return 0;
+                    }
+                });
+            }
+
+            const grid = document.getElementById('productsGrid');
+            
+            if (productsToRender.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #6b7280;">
+                        <i class="fas fa-search fa-3x" style="margin-bottom: 16px; opacity: 0.5;"></i>
+                        <h3 style="margin: 0 0 8px 0; font-size: 18px;">No se encontraron productos</h3>
+                        <p style="margin: 0;">Intenta ajustar los filtros o el término de búsqueda</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = productsToRender.map(product => `
+                <div class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://via.placeholder.com/261x261/ff6b35/white?text=${encodeURIComponent(product.name)}" 
+                             alt="${product.name}" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-footer">
+                            <span class="product-price">$${product.price.toFixed(2)}</span>
+                            <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                showNotification(`${product.name} agregado al carrito`, 'success');
+                
+                // Aquí puedes agregar la lógica para añadir al carrito real
+                console.log('Producto agregado:', product);
+            }
+        }
+
+        function changePage(page) {
+            const buttons = document.querySelectorAll('.pagination-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (page === 'prev' && currentPage > 1) {
+                currentPage--;
+            } else if (page === 'next' && currentPage < 3) {
+                currentPage++;
+            } else if (typeof page === 'number') {
+                currentPage = page;
+            }
+
+            // Activar botón actual
+            const activeBtn = document.querySelector(`.pagination-btn:nth-child(${currentPage + 1})`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Simular carga de página (scroll to top)
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showNotification(`Página ${currentPage} cargada`, 'info');
+        }
+
+        function openCart() {
+            // Redirigir al dashboard con el carrito abierto
+            window.location.href = "{{ url_for('client_dashboard') }}#cart";
+        }
+
+        function openUserMenu() {
+            // Implementar menú de usuario
+            alert('Menú de usuario - Funcionalidad en desarrollo');
+        }
+
+        function goToProduct(productId) {
+            // Redirigir a la página de detalle del producto
+            window.location.href = "{{ url_for('product_detail', product_id=0) }}".replace('0', productId);
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'info' ? '#3b82f6' : '#ef4444'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+                font-size: 14px;
+                font-weight: 500;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
