@@ -8,6 +8,11 @@
     <!-- CSS -->
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/product-placeholders.css') }}" rel="stylesheet">
+    
+    <!-- Sistema de Temas Claro/Oscuro -->
+    <link href="{{ url_for('static', filename='css/theme-toggle.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     
     <style>
         body {
@@ -110,17 +115,18 @@
             background: #e55a2b;
         }
         
-        /* Carrito lateral */
+        /* Carrito lateral - Compatible con temas */
         .cart-sidebar {
             position: fixed;
             right: -500px;
             top: 0;
             width: 480px;
             height: 100vh;
-            background: white;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             box-shadow: -25px 0 50px rgba(0,0,0,0.25);
             z-index: 1000;
-            transition: right 0.3s ease;
+            transition: right 0.3s ease, background-color 0.3s ease, color 0.3s ease;
             overflow-y: auto;
         }
         
@@ -130,10 +136,12 @@
         
         .cart-header {
             padding: 24px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
         
         .cart-items {
@@ -143,12 +151,14 @@
         }
         
         .cart-item {
-            background: #f8f9fa;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
+            transition: all 0.3s ease;
         }
         
         .cart-item-image {
@@ -167,11 +177,12 @@
             font-weight: 600;
             font-size: 16px;
             margin-bottom: 4px;
+            color: var(--text-primary);
         }
         
         .cart-item-code {
             font-size: 14px;
-            color: #6b7280;
+            color: var(--text-secondary);
             margin-bottom: 8px;
         }
         
@@ -193,8 +204,9 @@
         }
         
         .quantity-btn.minus {
-            background: #e5e7eb;
-            color: #374151;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
         }
         
         .quantity-btn.plus {
@@ -210,7 +222,9 @@
         
         .cart-summary {
             padding: 24px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
         
         .summary-row {
@@ -223,9 +237,10 @@
             display: flex;
             justify-content: space-between;
             padding-top: 16px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid var(--border-color);
             font-weight: bold;
             font-size: 18px;
+            color: var(--text-primary);
         }
         
         .btn-checkout {
@@ -242,13 +257,40 @@
         
         .btn-continue {
             background: transparent;
-            color: #374151;
-            border: 1px solid #d1d5db;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
             width: 100%;
             padding: 14px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-continue:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        /* Botón de cerrar carrito */
+        .close-cart {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-cart:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
         }
         
         .cart-overlay {
@@ -529,8 +571,11 @@
     <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
-            <h2 style="font-size: 20px; font-weight: bold; margin: 0;">Carrito de Compras</h2>
-            <button onclick="toggleCart()" style="background: none; border: none; font-size: 20px; cursor: pointer;">
+            <h2 style="font-size: 20px; font-weight: bold; margin: 0; color: var(--text-primary);">
+                <i class="fas fa-shopping-cart" style="margin-right: 8px; color: var(--primary-color);"></i>
+                Carrito de Compras
+            </h2>
+            <button class="close-cart" onclick="toggleCart()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -541,20 +586,20 @@
         
         <div class="cart-summary">
             <div class="summary-row">
-                <span style="color: #6b7280;">Subtotal:</span>
+                <span>Subtotal:</span>
                 <span style="font-weight: 600;" id="subtotal">$0.00</span>
             </div>
             <div class="summary-row">
-                <span style="color: #6b7280;">Envío:</span>
+                <span>Envío:</span>
                 <span style="font-weight: 600;" id="shipping">$8.99</span>
             </div>
             <div class="summary-row">
-                <span style="color: #6b7280;">Impuestos:</span>
+                <span>Impuestos:</span>
                 <span style="font-weight: 600;" id="taxes">$0.00</span>
             </div>
             <div class="summary-total">
                 <span>Total:</span>
-                <span style="color: #ff6b35;" id="total">$0.00</span>
+                <span style="color: var(--primary-color); font-weight: bold;" id="total">$0.00</span>
             </div>
             
             <div style="margin-top: 24px;">
