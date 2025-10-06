@@ -95,11 +95,62 @@ def client_dashboard():
     """Dashboard para clientes"""
     return render_template("views/client_dashboard.html")
 
+@app.route("/profile")
+@login_required
+def profile():
+    """Página de perfil del usuario"""
+    return render_template("views/profile.html")
+
 @app.route("/catalog")
 @client_access
 def catalog():
     """Página del catálogo de productos"""
     return render_template("views/catalog.html")
+
+@app.route("/checkout")
+@client_access
+def checkout():
+    """Página de proceso de pago / carrito de compras"""
+    # Datos del carrito (en una aplicación real esto vendría de la sesión/base de datos)
+    cart_items = [
+        {
+            "id": 1,
+            "name": "Taladro Eléctrico Bosch",
+            "model": "Modelo: GSB 13 RE - 650W",
+            "price": 89000,
+            "quantity": 1,
+            "image": "taladro-electrico.jpg"
+        },
+        {
+            "id": 2,
+            "name": "Set de Llaves Inglesas",
+            "model": "12 piezas - Acero cromado",
+            "price": 24000,
+            "quantity": 2,
+            "image": "set-llaves.jpg"
+        },
+        {
+            "id": 3,
+            "name": "Tornillos Galvanizados",
+            "model": "Caja x100 unidades - 6mm x 40mm",
+            "price": 12000,
+            "quantity": 1,
+            "image": "tornillos.jpg"
+        }
+    ]
+    
+    # Calcular totales
+    subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
+    shipping = 15000 if subtotal < 200000 else 0
+    tax = int(subtotal * 0.19)  # IVA 19%
+    total = subtotal + shipping + tax
+    
+    return render_template("views/checkout.html", 
+                         cart_items=cart_items,
+                         subtotal=subtotal,
+                         shipping=shipping,
+                         tax=tax,
+                         total=total)
 
 @app.route("/product/<int:product_id>")
 @client_access
@@ -271,11 +322,6 @@ def product_detail(product_id):
                          product=product, 
                          related_products=related_products)
 
-@app.route("/profile")
-@login_required
-def profile():
-    """Página de perfil de usuario"""
-    return render_template("views/profile.html")
 
 @app.route("/tablas")
 def tablas():

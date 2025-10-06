@@ -8,172 +8,524 @@
     <!-- CSS -->
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8fafc;
+            color: #111827;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header igual que en catálogo y dashboard */
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b35;
+            text-decoration: none !important;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: #e55a2b;
+            text-decoration: none !important;
+            transform: scale(1.05);
+        }
+        
+        .logo i {
+            margin-right: 8px;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .home-btn {
+            background: #ff6b35;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .home-btn:hover {
+            background: #e55a2b;
+            color: white !important;
+            text-decoration: none !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb-container {
+            margin-bottom: 24px;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .breadcrumb a {
+            color: #64748b;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #ff6b35;
+        }
+
+        /* Título principal */
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+
+        /* Tarjeta de perfil */
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8559 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+        }
+
+        .profile-info h2 {
+            margin: 0 0 8px 0;
+            color: #111827;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .profile-info .role-badge {
+            display: inline-block;
+            background: #ff6b35;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .profile-info .status {
+            color: #10b981;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* Grid de información */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .info-section h3 {
+            color: #111827;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-section h3 i {
+            color: #ff6b35;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .info-value {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        /* Permisos de acceso */
+        .permissions-section {
+            margin-bottom: 32px;
+        }
+
+        .permissions-section h3 {
+            color: #111827;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permissions-section h3 i {
+            color: #ff6b35;
+        }
+
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .permission-card {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .permission-card.allowed {
+            background: #ecfdf5;
+            border-color: #10b981;
+        }
+
+        .permission-card.denied {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .permission-card i {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .permission-card.allowed i {
+            color: #10b981;
+        }
+
+        .permission-card.denied i {
+            color: #ef4444;
+        }
+
+        .permission-card h4 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .permission-card p {
+            margin: 0;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Acciones rápidas */
+        .quick-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #ff6b35;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: #e55a2b;
+            color: white !important;
+            text-decoration: none !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: #64748b;
+        }
+
+        .action-btn.secondary:hover {
+            background: #475569;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 24px 16px;
+            }
+
+            .profile-card {
+                padding: 20px;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .permissions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
-<body id="page-top">
 
-    <div id="wrapper">
-        <div id="content-wrapper" class="d-flex flex-column">
-            <div id="content">
+<body>
+    <!-- Header igual que en otras páginas -->
+    <header class="header">
+        <div class="header-content">
+            <a href="{{ url_for('client_dashboard') }}" class="logo">
+                <i class="fas fa-tools"></i>
+                FerreJunior
+            </a>
+            <div class="header-icons">
+                <a href="{{ url_for('client_dashboard') }}" class="home-btn">
+                    <i class="fas fa-home"></i> Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
 
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <div class="navbar-brand">
-                        <i class="fas fa-user text-primary"></i>
-                        <span class="ml-2 font-weight-bold text-primary">Mi Perfil</span>
+    <div class="main-container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-container">
+            <nav class="breadcrumb">
+                <a href="{{ url_for('client_dashboard') }}">Dashboard</a>
+                <span class="mx-2">/</span>
+                <span>Mi Perfil</span>
+            </nav>
+        </div>
+
+        <!-- Título -->
+        <h1 class="page-title">Mi Perfil</h1>
+        <p class="page-subtitle">Información de tu cuenta y configuraciones personales</p>
+
+        <!-- Tarjeta de perfil -->
+        <div class="profile-card">
+            <!-- Header del perfil -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <h2>Juan Pérez</h2>
+                    <div class="role-badge">Cliente</div>
+                    <div class="status">
+                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i>
+                        Cuenta activa
                     </div>
+                </div>
+            </div>
 
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main') }}">
-                                <i class="fas fa-home mr-1"></i>
-                                Volver al Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt mr-1"></i>
-                                Cerrar Sesión
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Información del Usuario</h1>
+            <!-- Grid de información -->
+            <div class="profile-grid">
+                <!-- Información personal -->
+                <div class="info-section">
+                    <h3>
+                        <i class="fas fa-user-circle"></i>
+                        Información Personal
+                    </h3>
+                    <div class="info-item">
+                        <span class="info-label">Nombre completo:</span>
+                        <span class="info-value">Juan Pérez</span>
                     </div>
-
-                    <!-- User Info Card -->
-                    <div class="row justify-content-center">
-                        <div class="col-lg-8">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Detalles de la Cuenta</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="font-weight-bold">Nombre:</label>
-                                            <p class="text-gray-800">{{ current_user.name }}</p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="font-weight-bold">Email:</label>
-                                            <p class="text-gray-800">{{ current_user.email }}</p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="font-weight-bold">Rol:</label>
-                                            <p class="text-gray-800">
-                                                {% if current_user.role == 'admin' %}
-                                                    <span class="badge badge-danger">Administrador</span>
-                                                {% elif current_user.role == 'empleado' %}
-                                                    <span class="badge badge-info">Empleado</span>
-                                                {% else %}
-                                                    <span class="badge badge-success">Cliente</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="font-weight-bold">Estado:</label>
-                                            <p class="text-gray-800">
-                                                {% if current_user.active %}
-                                                    <span class="badge badge-success">Activo</span>
-                                                {% else %}
-                                                    <span class="badge badge-secondary">Inactivo</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="font-weight-bold">ID de Usuario:</label>
-                                            <p class="text-gray-800">{{ current_user.id }}</p>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="font-weight-bold">Fecha de Registro:</label>
-                                            <p class="text-gray-800">{{ current_user.created_at.strftime('%d/%m/%Y %H:%M') if current_user.created_at else 'No disponible' }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Permissions Card -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Permisos de Acceso</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4 text-center mb-3">
-                                            <h5>Panel Admin</h5>
-                                            {% if current_user.is_admin() %}
-                                                <i class="fas fa-check-circle fa-3x text-success"></i>
-                                                <p class="text-success mt-2">Acceso Completo</p>
-                                            {% else %}
-                                                <i class="fas fa-times-circle fa-3x text-danger"></i>
-                                                <p class="text-danger mt-2">Sin Acceso</p>
-                                            {% endif %}
-                                        </div>
-                                        <div class="col-md-4 text-center mb-3">
-                                            <h5>Panel Empleado</h5>
-                                            {% if current_user.is_employee() %}
-                                                <i class="fas fa-check-circle fa-3x text-success"></i>
-                                                <p class="text-success mt-2">Acceso Autorizado</p>
-                                            {% else %}
-                                                <i class="fas fa-times-circle fa-3x text-danger"></i>
-                                                <p class="text-danger mt-2">Sin Acceso</p>
-                                            {% endif %}
-                                        </div>
-                                        <div class="col-md-4 text-center mb-3">
-                                            <h5>Panel Cliente</h5>
-                                            <i class="fas fa-check-circle fa-3x text-success"></i>
-                                            <p class="text-success mt-2">Acceso Garantizado</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Quick Actions -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        {% if current_user.is_admin() %}
-                                        <div class="col-md-4 mb-2">
-                                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-danger btn-block">
-                                                <i class="fas fa-shield-alt mr-2"></i>Panel Admin
-                                            </a>
-                                        </div>
-                                        {% endif %}
-                                        {% if current_user.is_employee() %}
-                                        <div class="col-md-4 mb-2">
-                                            <a href="{{ url_for('employee_dashboard') }}" class="btn btn-info btn-block">
-                                                <i class="fas fa-user-tie mr-2"></i>Panel Empleado
-                                            </a>
-                                        </div>
-                                        {% endif %}
-                                        <div class="col-md-4 mb-2">
-                                            <a href="{{ url_for('client_dashboard') }}" class="btn btn-success btn-block">
-                                                <i class="fas fa-user mr-2"></i>Panel Cliente
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="info-item">
+                        <span class="info-label">Correo electrónico:</span>
+                        <span class="info-value">juan.perez@ferrejunior.com</span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">Rol en el sistema:</span>
+                        <span class="info-value">Cliente</span>
+                    </div>
+                </div>
 
+                <!-- Información de cuenta -->
+                <div class="info-section">
+                    <h3>
+                        <i class="fas fa-cog"></i>
+                        Información de Cuenta
+                    </h3>
+                    <div class="info-item">
+                        <span class="info-label">ID de usuario:</span>
+                        <span class="info-value">#1001</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Estado de cuenta:</span>
+                        <span class="info-value" style="color: #10b981;">Activa</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Miembro desde:</span>
+                        <span class="info-value">15/03/2024</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permisos de acceso -->
+            <div class="permissions-section">
+                <h3>
+                    <i class="fas fa-shield-alt"></i>
+                    Permisos de Acceso
+                </h3>
+                <div class="permissions-grid">
+                    <div class="permission-card denied">
+                        <i class="fas fa-users-cog"></i>
+                        <h4>Panel de Administración</h4>
+                        <p>Gestión completa del sistema</p>
+                    </div>
+                    <div class="permission-card denied">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h4>Panel de Empleados</h4>
+                        <p>Gestión de inventario y pedidos</p>
+                    </div>
+                    <div class="permission-card allowed">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h4>Dashboard de Cliente</h4>
+                        <p>Compras y catálogo de productos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones rápidas -->
+            <div>
+                <h3>
+                    <i class="fas fa-bolt"></i>
+                    Acciones Rápidas
+                </h3>
+                <div class="quick-actions">
+                    <a href="{{ url_for('client_dashboard') }}" class="action-btn">
+                        <i class="fas fa-home"></i>
+                        Dashboard Principal
+                    </a>
+                    
+                    <a href="{{ url_for('catalog') }}" class="action-btn secondary">
+                        <i class="fas fa-th-large"></i>
+                        Ver Catálogo
+                    </a>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #ff6b35; color: white;">
+                    <h5 class="modal-title" id="exampleModalLabel">¿Cerrar Sesión?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">¿Estás seguro de que quieres cerrar tu sesión? Perderás cualquier información no guardada.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                    <a class="btn text-white" href="{{ url_for('logout') }}" style="background-color: #ff6b35;">Cerrar Sesión</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript -->
-    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
 
 </body>
 </html>
