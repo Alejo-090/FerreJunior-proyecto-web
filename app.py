@@ -98,8 +98,25 @@ def client_dashboard():
 @app.route("/profile")
 @login_required
 def profile():
-    """Página de perfil del usuario"""
-    return render_template("views/profile.html")
+    """Página de perfil del usuario - redirige según el rol"""
+    if current_user.is_admin():
+        return redirect(url_for('admin_profile'))
+    elif current_user.is_employee():
+        return redirect(url_for('employee_profile'))
+    else:
+        return redirect(url_for('client_profile'))
+
+@app.route("/admin/profile")
+@admin_required
+def admin_profile():
+    """Página de perfil para administradores"""
+    return render_template("views/admin_profile.html")
+
+@app.route("/employee/profile")
+@employee_required
+def employee_profile():
+    """Página de perfil para empleados"""
+    return render_template("views/employee_profile.html")
 
 @app.route("/catalog")
 @client_access
