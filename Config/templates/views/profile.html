@@ -8,376 +8,20 @@
     <!-- CSS -->
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8fafc;
-            color: #111827;
-            margin: 0;
-            padding: 0;
-        }
+    <link href="{{ url_for('static', filename='css/profile.css') }}" rel="stylesheet">
 
-        /* Header igual que en catálogo y dashboard */
-        .header {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 16px 24px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff6b35;
-            text-decoration: none !important;
-            transition: all 0.3s ease;
-        }
-        
-        .logo:hover {
-            color: #e55a2b;
-            text-decoration: none !important;
-            transform: scale(1.05);
-        }
-        
-        .logo i {
-            margin-right: 8px;
-        }
-
-        .header-icons {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .home-btn {
-            background: #ff6b35;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            text-decoration: none !important;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-        }
-
-        .home-btn:hover {
-            background: #e55a2b;
-            color: white !important;
-            text-decoration: none !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-        }
-
-        .main-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px 24px;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb-container {
-            margin-bottom: 24px;
-        }
-
-        .breadcrumb {
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        .breadcrumb a {
-            color: #64748b;
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            color: #ff6b35;
-        }
-
-        /* Título principal */
-        .page-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: #111827;
-            margin-bottom: 8px;
-        }
-
-        .page-subtitle {
-            color: #64748b;
-            font-size: 16px;
-            margin-bottom: 32px;
-        }
-
-        /* Tarjeta de perfil */
-        .profile-card {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-            margin-bottom: 24px;
-        }
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            margin-bottom: 32px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ff6b35 0%, #ff8559 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-        }
-
-        .profile-info h2 {
-            margin: 0 0 8px 0;
-            color: #111827;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .profile-info .role-badge {
-            display: inline-block;
-            background: #ff6b35;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        .profile-info .status {
-            color: #10b981;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        /* Grid de información */
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            margin-bottom: 32px;
-        }
-
-        .info-section h3 {
-            color: #111827;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-section h3 i {
-            color: #ff6b35;
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .info-item:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            font-weight: 500;
-            color: #64748b;
-        }
-
-        .info-value {
-            color: #111827;
-            font-weight: 600;
-        }
-
-        /* Permisos de acceso */
-        .permissions-section {
-            margin-bottom: 32px;
-        }
-
-        .permissions-section h3 {
-            color: #111827;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .permissions-section h3 i {
-            color: #ff6b35;
-        }
-
-        .permissions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .permission-card {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .permission-card.allowed {
-            background: #ecfdf5;
-            border-color: #10b981;
-        }
-
-        .permission-card.denied {
-            background: #fef2f2;
-            border-color: #ef4444;
-        }
-
-        .permission-card i {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-
-        .permission-card.allowed i {
-            color: #10b981;
-        }
-
-        .permission-card.denied i {
-            color: #ef4444;
-        }
-
-        .permission-card h4 {
-            margin: 0 0 4px 0;
-            font-size: 14px;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .permission-card p {
-            margin: 0;
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        /* Acciones rápidas */
-        .quick-actions {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            background: #ff6b35;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            text-decoration: none !important;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .action-btn:hover {
-            background: #e55a2b;
-            color: white !important;
-            text-decoration: none !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-        }
-
-        .action-btn.secondary {
-            background: #64748b;
-        }
-
-        .action-btn.secondary:hover {
-            background: #475569;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-container {
-                padding: 24px 16px;
-            }
-
-            .profile-card {
-                padding: 20px;
-            }
-
-            .profile-header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .profile-grid {
-                grid-template-columns: 1fr;
-                gap: 24px;
-            }
-
-            .permissions-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .quick-actions {
-                flex-direction: column;
-            }
-
-            .action-btn {
-                justify-content: center;
-            }
-        }
-    </style>
 </head>
 
 <body>
     <!-- Header igual que en otras páginas -->
     <header class="header">
         <div class="header-content">
-            <a href="{{ url_for('client_dashboard') }}" class="logo">
+            <a href="{{ url_for('client.client_dashboard') }}" class="logo">
                 <i class="fas fa-tools"></i>
                 FerreJunior
             </a>
             <div class="header-icons">
-                <a href="{{ url_for('client_dashboard') }}" class="home-btn">
+                <a href="{{ url_for('client.client_dashboard') }}" class="home-btn">
                     <i class="fas fa-home"></i> Volver al Dashboard
                 </a>
             </div>
@@ -388,7 +32,7 @@
         <!-- Breadcrumb -->
         <div class="breadcrumb-container">
             <nav class="breadcrumb">
-                <a href="{{ url_for('client_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('client.client_dashboard') }}">Dashboard</a>
                 <span class="mx-2">/</span>
                 <span>Mi Perfil</span>
             </nav>
@@ -490,12 +134,12 @@
                     Acciones Rápidas
                 </h3>
                 <div class="quick-actions">
-                    <a href="{{ url_for('client_dashboard') }}" class="action-btn">
+                    <a href="{{ url_for('client.client_dashboard') }}" class="action-btn">
                         <i class="fas fa-home"></i>
                         Dashboard Principal
                     </a>
                     
-                    <a href="{{ url_for('catalog') }}" class="action-btn secondary">
+                    <a href="{{ url_for('client.catalog') }}" class="action-btn secondary">
                         <i class="fas fa-th-large"></i>
                         Ver Catálogo
                     </a>
@@ -518,7 +162,7 @@
                 <div class="modal-body">¿Estás seguro de que quieres cerrar tu sesión? Perderás cualquier información no guardada.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
-                    <a class="btn text-white" href="{{ url_for('logout') }}" style="background-color: #ff6b35;">Cerrar Sesión</a>
+                    <a class="btn text-white" href="{{ url_for('auth.logout') }}" style="background-color: #ff6b35;">Cerrar Sesión</a>
                 </div>
             </div>
         </div>

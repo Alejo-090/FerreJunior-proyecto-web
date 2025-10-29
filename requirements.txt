@@ -5,3 +5,4 @@ marshmallow-sqlalchemy
 werkzeug
 Flask-Login
 pymysql
+Flask-WTF

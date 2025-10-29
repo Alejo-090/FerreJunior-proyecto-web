@@ -1,373 +1,89 @@
 from flask import Flask, request, jsonify, redirect, render_template, url_for, flash
 from Config.db import app, db
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from Config.models.user import User
+from flask_login import LoginManager, login_required, logout_user, current_user
+# Import all models to ensure proper table creation order
+from Config.models import User, Product, Order, Category, Task
 from Config.decorators import admin_required, employee_required, client_access
 from flask_marshmallow import Marshmallow
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_wtf.csrf import CSRFError
+
+# Importar blueprints
+from Config.blueprints.auth import auth_bp
+from Config.blueprints.admin import admin_bp
+from Config.blueprints.employee import employee_bp
+from Config.blueprints.client import client_bp
+from Config.blueprints.main import main_bp
+
+# Registrar blueprints
+app.register_blueprint(main_bp)  # Main primero para las rutas generales
+app.register_blueprint(auth_bp)  # Auth después
+app.register_blueprint(admin_bp)
+app.register_blueprint(employee_bp)
+app.register_blueprint(client_bp)
 
 # Configuración de Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth.login'
+
+# CSRF Protection for forms and AJAX
+csrf = CSRFProtect()
+csrf.init_app(app)
+
+# Return JSON for AJAX requests when CSRF validation fails so client-side JS can handle it
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    # If the client expects JSON (AJAX/fetch), return a JSON error
+    accept = request.headers.get('Accept', '')
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json
+    if is_ajax or 'application/json' in accept:
+        return jsonify({'success': False, 'error': 'CSRF token missing or inválido.'}), 400
+    # Otherwise, fallback to a friendly redirect/flash so users see the login page
+    flash('Su sesión expiró o ocurrió un problema de seguridad. Por favor inicie sesión de nuevo.')
+    return redirect(url_for('auth.login'))
+
+# Exempt the login view from CSRF verification to avoid blocking the initial login POST when
+# custom templates or session/token timing cause validation failures. This is a pragmatic
+# short-term fix so users can log in; we still keep CSRF enabled for other routes.
+try:
+    login_view = app.view_functions.get('auth.login')
+    if login_view:
+        csrf.exempt(login_view)
+        print('DEBUG: Exempted auth.login from CSRF checks')
+except Exception as e:
+    print('DEBUG: Could not exempt auth.login from CSRF checks:', e)
+
+# make generate_csrf available in templates as csrf_token()
+app.jinja_env.globals['csrf_token'] = generate_csrf
+
+# Jinja filter to format numbers as Colombian pesos (no decimals, dot as thousands separator)
+def format_cop(value):
+    try:
+        if value is None:
+            return '$0'
+        # value may be float or int; round to nearest peso
+        v = int(round(float(value)))
+        # use Python's thousands separator then replace comma with dot for Colombian style
+        s = f"{v:,}".replace(',', '.')
+        return f"${s}"
+    except Exception:
+        return '$0'
+
+app.jinja_env.filters['cop'] = format_cop
+
+# Deshabilitar cache de templates para desarrollo
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# Forzar recarga de templates
+app.jinja_env.cache = {}
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route("/")
-def index():
-    return redirect(url_for('login'))
-
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('main'))
-
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        remember = True if request.form.get('remember') else False
-        
-        # Validaciones básicas
-        if not email or not password:
-            flash('Por favor complete todos los campos.', 'danger')
-            return render_template("views/login.html")
-        
-        try:
-            user = User.query.filter_by(email=email).first()
-            
-            if user and user.check_password(password):
-                login_user(user, remember=remember)
-                flash(f'¡Bienvenido {user.name}!', 'success')
-                next_page = request.args.get('next')
-                
-                # Redireccionar según el rol del usuario
-                if next_page:
-                    return redirect(next_page)
-                elif user.is_admin():
-                    return redirect(url_for('admin_dashboard'))
-                elif user.is_employee():
-                    return redirect(url_for('employee_dashboard'))
-                else:
-                    return redirect(url_for('client_dashboard'))
-            else:
-                flash('Correo electrónico o contraseña incorrectos.', 'danger')
-        except Exception as e:
-            flash('Error interno del servidor. Intente más tarde.', 'danger')
-            print(f"Error en login: {e}")
-    
-    return render_template("views/login.html")
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('Has cerrado sesión exitosamente.', 'success')
-    return redirect(url_for('login'))
-
-@app.route("/main")
-@login_required
-def main():
-    """Dashboard principal - redirige según el rol"""
-    if current_user.is_admin():
-        return redirect(url_for('admin_dashboard'))
-    elif current_user.is_employee():
-        return redirect(url_for('employee_dashboard'))
-    else:
-        return redirect(url_for('client_dashboard'))
-
-@app.route("/admin")
-@admin_required
-def admin_dashboard():
-    """Dashboard exclusivo para administradores"""
-    user_count = User.query.count()
-    return render_template("views/admin_dashboard.html", user_count=user_count)
-
-@app.route("/employee")
-@employee_required
-def employee_dashboard():
-    """Dashboard para empleados y administradores"""
-    return render_template("views/employee_dashboard.html")
-
-@app.route("/client")
-@client_access
-def client_dashboard():
-    """Dashboard para clientes"""
-    return render_template("views/client_dashboard.html")
-
-@app.route("/profile")
-@login_required
-def profile():
-    """Página de perfil del usuario - redirige según el rol"""
-    if current_user.is_admin():
-        return redirect(url_for('admin_profile'))
-    elif current_user.is_employee():
-        return redirect(url_for('employee_profile'))
-    else:
-        return redirect(url_for('client_profile'))
-
-@app.route("/admin/profile")
-@admin_required
-def admin_profile():
-    """Página de perfil para administradores"""
-    return render_template("views/admin_profile.html")
-
-@app.route("/employee/profile")
-@employee_required
-def employee_profile():
-    """Página de perfil para empleados"""
-    return render_template("views/employee_profile.html")
-
-@app.route("/catalog")
-@client_access
-def catalog():
-    """Página del catálogo de productos"""
-    return render_template("views/catalog.html")
-
-@app.route("/checkout")
-@client_access
-def checkout():
-    """Página de proceso de pago / carrito de compras"""
-    # Datos del carrito (en una aplicación real esto vendría de la sesión/base de datos)
-    cart_items = [
-        {
-            "id": 1,
-            "name": "Taladro Eléctrico Bosch",
-            "model": "Modelo: GSB 13 RE - 650W",
-            "price": 89000,
-            "quantity": 1,
-            "image": "taladro-electrico.jpg"
-        },
-        {
-            "id": 2,
-            "name": "Set de Llaves Inglesas",
-            "model": "12 piezas - Acero cromado",
-            "price": 24000,
-            "quantity": 2,
-            "image": "set-llaves.jpg"
-        },
-        {
-            "id": 3,
-            "name": "Tornillos Galvanizados",
-            "model": "Caja x100 unidades - 6mm x 40mm",
-            "price": 12000,
-            "quantity": 1,
-            "image": "tornillos.jpg"
-        }
-    ]
-    
-    # Calcular totales
-    subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
-    shipping = 15000 if subtotal < 200000 else 0
-    tax = int(subtotal * 0.19)  # IVA 19%
-    total = subtotal + shipping + tax
-    
-    return render_template("views/checkout.html", 
-                         cart_items=cart_items,
-                         subtotal=subtotal,
-                         shipping=shipping,
-                         tax=tax,
-                         total=total)
-
-@app.route("/product/<int:product_id>")
-@client_access
-def product_detail(product_id):
-    """Página de detalle de producto"""
-    # Datos de productos (en una aplicación real esto vendría de la base de datos)
-    products = {
-        1: {
-            "id": 1,
-            "name": "Atornillador 12V",
-            "brand": "PowerTech Pro",
-            "rating": 4.5,
-            "reviews": 127,
-            "price": 60000,
-            "special_price": "válido hasta fin de mes",
-            "in_stock": True,
-            "sku": "SKU-1705-14V-01",
-            "shipping": "Envío Gratis en pedidos superiores a $80. Entrega en 2-3 días hábiles",
-            "image": "atornillador-12v.jpg",
-            "description": "El Taladro Percutor 18V PowerTech Pro es la herramienta perfecta para profesionales y entusiastas del bricolaje. Con su potente motor sin escobillas y batería de larga duración, ofrece un rendimiento excepcional en cualquier proyecto:",
-            "features": [
-                "Motor sin escobillas de alta eficiencia",
-                "Batería de ion litio 18V 2.0Ah incluida",
-                "13mm mandril metálico de sujeción rápida",
-                "LED integrado para mayor visibilidad"
-            ],
-            "specifications": {
-                "Voltaje": "12V",
-                "Torque máximo": "25 Nm",
-                "Velocidad": "0-350/1,400 RPM",
-                "Peso": "1.2 kg",
-                "Garantía": "2 años"
-            },
-            "category": "Herramientas",
-            "subcategory": "Taladros Percutores"
-        },
-        2: {
-            "id": 2,
-            "name": "Taladro Percutor 18V",
-            "brand": "ProDrill",
-            "rating": 4.7,
-            "reviews": 89,
-            "price": 95000,
-            "special_price": None,
-            "in_stock": True,
-            "sku": "SKU-1800-PD-02",
-            "shipping": "Envío Gratis en pedidos superiores a $80. Entrega en 2-3 días hábiles",
-            "image": "taladro-percutor-18v.jpg",
-            "description": "Taladro percutor profesional de 18V con tecnología brushless para mayor durabilidad y eficiencia energética.",
-            "features": [
-                "Motor brushless de alta potencia",
-                "Función percutor para mampostería",
-                "Chuck metálico de 13mm",
-                "Luz LED integrada"
-            ],
-            "specifications": {
-                "Voltaje": "18V",
-                "Torque máximo": "60 Nm",
-                "Velocidad": "0-400/1,500 RPM",
-                "Peso": "1.8 kg",
-                "Garantía": "3 años"
-            },
-            "category": "Herramientas",
-            "subcategory": "Taladros Percutores"
-        },
-        3: {
-            "id": 3,
-            "name": "Set de Brocas 20 pzs",
-            "brand": "DrillMaster",
-            "rating": 4.3,
-            "reviews": 156,
-            "price": 24999,
-            "special_price": None,
-            "in_stock": True,
-            "sku": "SKU-BROCAS-20",
-            "shipping": "Envío Gratis en pedidos superiores a $80. Entrega en 2-3 días hábiles",
-            "image": "set-brocas-20pzs.jpg",
-            "description": "Set completo de brocas para metal, madera y mampostería. Fabricadas en acero de alta velocidad.",
-            "features": [
-                "20 brocas de diferentes tamaños",
-                "Acero de alta velocidad HSS",
-                "Estuche organizador incluido",
-                "Marcado de tamaños claro"
-            ],
-            "specifications": {
-                "Material": "Acero HSS",
-                "Tamaños": "1-10mm",
-                "Cantidad": "20 piezas",
-                "Peso": "0.8 kg",
-                "Garantía": "1 año"
-            },
-            "category": "Accesorios",
-            "subcategory": "Brocas"
-        },
-        4: {
-            "id": 4,
-            "name": "Caja de Herramientas",
-            "brand": "ToolBox Pro",
-            "rating": 4.6,
-            "reviews": 203,
-            "price": 35000,
-            "special_price": None,
-            "in_stock": True,
-            "sku": "SKU-CAJA-TOOL",
-            "shipping": "Envío Gratis en pedidos superiores a $80. Entrega en 2-3 días hábiles",
-            "image": "caja-herramientas.jpg",
-            "description": "Caja de herramientas resistente con múltiples compartimentos para organizar todas tus herramientas.",
-            "features": [
-                "Construcción resistente",
-                "Múltiples compartimentos",
-                "Cerradura de seguridad",
-                "Asa reforzada"
-            ],
-            "specifications": {
-                "Material": "Plástico ABS",
-                "Dimensiones": "45x25x20 cm",
-                "Peso": "2.1 kg",
-                "Color": "Azul/Negro",
-                "Garantía": "2 años"
-            },
-            "category": "Almacenamiento",
-            "subcategory": "Cajas"
-        },
-        5: {
-            "id": 5,
-            "name": "Gafas de Seguridad",
-            "brand": "SafeVision",
-            "rating": 4.4,
-            "reviews": 78,
-            "price": 12500,
-            "special_price": None,
-            "in_stock": True,
-            "sku": "SKU-GAFAS-SEG",
-            "shipping": "Envío Gratis en pedidos superiores a $80. Entrega en 2-3 días hábiles",
-            "image": "gafas-seguridad.jpg",
-            "description": "Gafas de seguridad con protección UV y resistencia al impacto. Ideales para trabajos de construcción.",
-            "features": [
-                "Lentes anti-impacto",
-                "Protección UV 400",
-                "Marco ajustable",
-                "Cumple normas de seguridad"
-            ],
-            "specifications": {
-                "Material": "Policarbonato",
-                "Color": "Transparente",
-                "Peso": "0.1 kg",
-                "Certificación": "ANSI Z87.1",
-                "Garantía": "1 año"
-            },
-            "category": "Seguridad",
-            "subcategory": "Protección Ocular"
-        }
-    }
-    
-    # Productos relacionados (simulados)
-    related_products = [
-        {"id": 2, "name": "Taladro percutor 18V", "price": 90000, "image": "taladro-percutor-18v.jpg"},
-        {"id": 3, "name": "Set de Brocas 20 pzs", "price": 24999, "image": "set-brocas-20pzs.jpg"},
-        {"id": 4, "name": "Caja de Herramientas", "price": 35000, "image": "caja-herramientas.jpg"},
-        {"id": 5, "name": "Gafas de Seguridad", "price": 12500, "image": "gafas-seguridad.jpg"}
-    ]
-    
-    product = products.get(product_id)
-    if not product:
-        flash('Producto no encontrado.', 'error')
-        return redirect(url_for('catalog'))
-    
-    return render_template("views/product_detail.html", 
-                         product=product, 
-                         related_products=related_products)
-
-
-@app.route("/tablas")
-def tablas():
-    empleados = [
-        {"name": "Tiger Nixon", "position": "System Architect", "office": "Edinburgh", "age": 61, "start_date": "2011/04/25", "salary": "$320,800"},
-        {"name": "Garrett Winters", "position": "Accountant", "office": "Tokyo", "age": 63, "start_date": "2011/07/25", "salary": "$170,750"},
-        {"name": "Ashton Cox", "position": "Junior Technical Author", "office": "San Francisco", "age": 66, "start_date": "2009/01/12", "salary": "$86,000"},
-        {"name": "Cedric Kelly", "position": "Senior Javascript Developer", "office": "Edinburgh", "age": 22, "start_date": "2012/03/29", "salary": "$433,060"},
-        {"name": "Airi Satou", "position": "Accountant", "office": "Tokyo", "age": 33, "start_date": "2008/11/28", "salary": "$162,700"},
-        {"name": "Brielle Williamson", "position": "Integration Specialist", "office": "New York", "age": 61, "start_date": "2012/12/02", "salary": "$372,000"},
-        {"name": "Herrod Chandler", "position": "Sales Assistant", "office": "San Francisco", "age": 59, "start_date": "2012/08/06", "salary": "$137,500"}
-    ]
-    return render_template("views/tables.html", empleados=empleados)
-
-@app.route("/cargarTabla")
-def cargarTabla():
-    empleados = [
-        {"name": "Tiger Nixon", "position": "System Architect", "office": "Edinburgh", "age": 61, "start_date": "2011/04/25", "salary": "$320,800"},
-        {"name": "Garrett Winters", "position": "Accountant", "office": "Tokyo", "age": 63, "start_date": "2011/07/25", "salary": "$170,750"},
-        {"name": "Ashton Cox", "position": "Junior Technical Author", "office": "San Francisco", "age": 66, "start_date": "2009/01/12", "salary": "$86,000"},
-        {"name": "Cedric Kelly", "position": "Senior Javascript Developer", "office": "Edinburgh", "age": 22, "start_date": "2012/03/29", "salary": "$433,060"},
-        {"name": "Airi Satou", "position": "Accountant", "office": "Tokyo", "age": 33, "start_date": "2008/11/28", "salary": "$162,700"},
-        {"name": "Brielle Williamson", "position": "Integration Specialist", "office": "New York", "age": 61, "start_date": "2012/12/02", "salary": "$372,000"},
-        {"name": "Herrod Chandler", "position": "Sales Assistant", "office": "San Francisco", "age": 59, "start_date": "2012/08/06", "salary": "$137,500"}
-    ]
-    return empleados
-
 def init_db():
-    """Inicializa la base de datos con usuarios de prueba"""
+    """Inicializa la base de datos con usuarios y datos de prueba"""
     with app.app_context():
         # Crear las tablas si no existen
         db.create_all()
@@ -408,6 +124,239 @@ def init_db():
             except Exception as e:
                 print(f"Error al crear usuarios: {e}")
                 db.session.rollback()
+
+        # Verificar si ya existen productos (siempre crear datos de prueba)
+        if Product.query.count() == 0:
+            # Crear categorías primero
+            categories = [
+                Category(name="Herramientas Manuales", description="Herramientas que no requieren energía eléctrica"),
+                Category(name="Herramientas Eléctricas", description="Herramientas que funcionan con energía eléctrica"),
+                Category(name="Medición", description="Herramientas de medición y nivelación"),
+                Category(name="Seguridad", description="Equipos de protección personal"),
+                Category(name="Pinturas", description="Pinturas, barnices y accesorios"),
+                Category(name="Electricidad", description="Materiales y herramientas eléctricas"),
+                Category(name="Plomería", description="Herramientas y materiales para plomería"),
+                Category(name="Jardinería", description="Herramientas para jardín y exteriores")
+            ]
+
+            try:
+                for category in categories:
+                    db.session.add(category)
+                db.session.commit()
+                print("Categorías de prueba creadas")
+            except Exception as e:
+                print(f"Error al crear categorías: {e}")
+                db.session.rollback()
+                return
+
+            # Obtener categorías creadas
+            cat_manuales = Category.query.filter_by(name="Herramientas Manuales").first()
+            cat_electricas = Category.query.filter_by(name="Herramientas Eléctricas").first()
+            cat_medicion = Category.query.filter_by(name="Medición").first()
+            cat_seguridad = Category.query.filter_by(name="Seguridad").first()
+
+            # Crear productos de prueba
+            products = [
+                Product(
+                    name="Martillo de Carpintero",
+                    description="Martillo profesional para carpintería",
+                    sku="MAR001",
+                    price=25.50,
+                    stock_quantity=15,
+                    min_stock_level=5,
+                    category_id=cat_manuales.id if cat_manuales else None,
+                    brand="FerreJunior",
+                    active=True
+                ),
+                Product(
+                    name="Destornillador Phillips",
+                    description="Destornillador profesional con punta Phillips",
+                    sku="DES001",
+                    price=8.75,
+                    stock_quantity=2,  # Stock bajo
+                    min_stock_level=5,
+                    category_id=cat_manuales.id if cat_manuales else None,
+                    brand="FerreJunior",
+                    active=True
+                ),
+                Product(
+                    name="Taladro Inalámbrico",
+                    description="Taladro profesional con batería recargable",
+                    sku="TAL001",
+                    price=125.00,
+                    stock_quantity=8,
+                    min_stock_level=3,
+                    category_id=cat_electricas.id if cat_electricas else None,
+                    brand="Bosch",
+                    active=True
+                ),
+                Product(
+                    name="Cinta Métrica 5m",
+                    description="Cinta métrica profesional de 5 metros",
+                    sku="CIN001",
+                    price=12.30,
+                    stock_quantity=1,  # Stock bajo
+                    min_stock_level=5,
+                    category_id=cat_medicion.id if cat_medicion else None,
+                    brand="Stanley",
+                    active=True
+                ),
+                Product(
+                    name="Guantes de Seguridad",
+                    description="Guantes resistentes para trabajo pesado",
+                    sku="GUA001",
+                    price=15.90,
+                    stock_quantity=25,
+                    min_stock_level=10,
+                    category_id=cat_seguridad.id if cat_seguridad else None,
+                    brand="FerreJunior",
+                    active=True
+                )
+            ]
+
+            try:
+                for product in products:
+                    db.session.add(product)
+                db.session.commit()
+                print("Productos de prueba creados")
+            except Exception as e:
+                print(f"Error al crear productos: {e}")
+                db.session.rollback()
+
+        # Verificar si ya existen pedidos (siempre crear datos de prueba)
+        if Order.query.count() == 0:
+            users = User.query.all()
+            if len(users) >= 2:
+                client_user = User.query.filter_by(role='cliente').first()
+                admin_user = User.query.filter_by(role='admin').first()
+
+                if client_user and admin_user:
+                    # Crear pedidos de prueba
+                    orders = [
+                        Order(
+                            user_id=client_user.id,
+                            order_number="ORD001",
+                            status="pending",
+                            total_amount=34.25,
+                            shipping_address="Calle Principal 123, Ciudad",
+                            payment_method="transferencia",
+                            notes="Pedido urgente"
+                        ),
+                        Order(
+                            user_id=client_user.id,
+                            order_number="ORD002",
+                            status="shipped",
+                            total_amount=125.00,
+                            shipping_address="Avenida Central 456, Ciudad",
+                            payment_method="tarjeta",
+                            notes="Entregar en horario de oficina"
+                        ),
+                        Order(
+                            user_id=admin_user.id,
+                            order_number="ORD003",
+                            status="delivered",
+                            total_amount=41.20,
+                            shipping_address="Plaza Mayor 789, Ciudad",
+                            payment_method="efectivo",
+                            notes="Pedido completado"
+                        ),
+                        Order(
+                            user_id=client_user.id,
+                            order_number="ORD004",
+                            status="pending",
+                            total_amount=140.90,
+                            shipping_address="Calle Nueva 321, Ciudad",
+                            payment_method="transferencia",
+                            notes="Cliente preferencial"
+                        )
+                    ]
+
+                    try:
+                        for order in orders:
+                            db.session.add(order)
+                        db.session.commit()
+                        print("Pedidos de prueba creados")
+                    except Exception as e:
+                        print(f"Error al crear pedidos: {e}")
+                        db.session.rollback()
+
+        # Verificar si ya existen tareas (siempre crear datos de prueba)
+        if Task.query.count() == 0:
+            users = User.query.all()
+            if len(users) >= 2:
+                employee_user = User.query.filter_by(role='empleado').first()
+                admin_user = User.query.filter_by(role='admin').first()
+
+                if employee_user and admin_user:
+                    from datetime import timedelta, datetime
+
+                    # Crear tareas de prueba
+                    tasks = [
+                        Task(
+                            title="Procesar pedido #ORD001",
+                            description="Cliente: María González - Pedido urgente de herramientas",
+                            priority="high",
+                            status="pending",
+                            assigned_to=employee_user.id,
+                            created_by=admin_user.id,
+                            due_date=datetime.utcnow() + timedelta(hours=2)
+                        ),
+                        Task(
+                            title="Actualizar inventario de herramientas",
+                            description="Revisar stock disponible y actualizar cantidades",
+                            priority="medium",
+                            status="in_progress",
+                            assigned_to=employee_user.id,
+                            created_by=admin_user.id,
+                            due_date=datetime.utcnow() + timedelta(days=1)
+                        ),
+                        Task(
+                            title="Responder consulta técnica sobre taladros",
+                            description="Cliente pregunta sobre modelos disponibles y precios",
+                            priority="low",
+                            status="pending",
+                            assigned_to=employee_user.id,
+                            created_by=admin_user.id,
+                            due_date=datetime.utcnow() + timedelta(days=2)
+                        ),
+                        Task(
+                            title="Preparar pedido #ORD002 para envío",
+                            description="Empaquetar productos y coordinar entrega",
+                            priority="high",
+                            status="pending",
+                            assigned_to=employee_user.id,
+                            created_by=admin_user.id,
+                            due_date=datetime.utcnow() + timedelta(hours=4)
+                        ),
+                        Task(
+                            title="Generar reporte semanal de ventas",
+                            description="Compilar estadísticas de ventas de la semana",
+                            priority="medium",
+                            status="completed",
+                            assigned_to=employee_user.id,
+                            created_by=admin_user.id,
+                            due_date=datetime.utcnow() - timedelta(days=1),
+                            completed_at=datetime.utcnow() - timedelta(hours=2)
+                        ),
+                        Task(
+                            title="Organizar taller de herramientas",
+                            description="Reorganizar productos en el almacén por categorías",
+                            priority="low",
+                            status="pending",
+                            assigned_to=employee_user.id,
+                            created_by=admin_user.id,
+                            due_date=datetime.utcnow() + timedelta(days=3)
+                        )
+                    ]
+
+                    try:
+                        for task in tasks:
+                            db.session.add(task)
+                        db.session.commit()
+                        print("Tareas de prueba creadas")
+                    except Exception as e:
+                        print(f"Error al crear tareas: {e}")
+                        db.session.rollback()
 
 if __name__ == "__main__":
     # Inicializar base de datos al arrancar

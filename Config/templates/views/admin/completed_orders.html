@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos Completados - FerreJunior</title>
+
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: white;
+            color: #475569;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .sidebar-header {
+            padding: 20px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff8559;
+        }
+
+        .sidebar-logo i {
+            margin-right: 10px;
+            font-size: 22px;
+            color: #ff8559;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+        }
+
+        .nav-section:first-child {
+            margin-top: 10px;
+        }
+
+        .section-title {
+            padding: 0 20px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #94a3b8;
+            opacity: 1;
+            margin-top: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+            border-radius: 8px;
+            margin: 2px 10px;
+        }
+
+        .nav-link:hover {
+            background: #f8fafc;
+            color: #ff8559;
+            text-decoration: none;
+            transform: translateX(4px);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 133, 89, 0.1);
+            color: #ff8559;
+            text-decoration: none;
+            border-left: 3px solid #ff8559;
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 15px;
+            font-size: 16px;
+            color: #94a3b8;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover i,
+        .nav-link.active i {
+            color: #ff8559;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .top-navbar {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            background: none;
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: ">";
+            color: #94a3b8;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-left: auto;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .notification-btn:hover {
+            background: #f1f5f9;
+            color: #ff8559;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-info:hover {
+            background: #e2e8f0;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff8559, #ff9a76);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details h6 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-details small {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        /* Content */
+        .dashboard-content {
+            padding: 30px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f1f5f9;
+            color: #475569;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+            color: #334155;
+            text-decoration: none;
+        }
+
+        /* Orders Container */
+        .orders-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .orders-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .orders-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .order-number {
+            font-weight: 600;
+            color: #1e293b;
+            font-family: 'Courier New', monospace;
+        }
+
+        .customer-info {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .customer-email {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-shipped {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .status-delivered {
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .amount {
+            font-weight: 700;
+            color: #ff8559;
+            font-size: 16px;
+        }
+
+        .date-info {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .actions-cell {
+            text-align: center;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 5px;
+        }
+
+        .action-btn.view {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .action-btn.view:hover {
+            background: #bae6fd;
+            color: #0284c7;
+        }
+
+        .action-btn.details {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .action-btn.details:hover {
+            background: #e9d5ff;
+            color: #6d28d9;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 250px;
+                background: white;
+                border-right: 1px solid #e2e8f0;
+            }
+
+            .main-content {
+                margin-left: 250px;
+            }
+
+            .dashboard-content {
+                padding: 20px 15px;
+            }
+
+            .orders-container {
+                padding: 20px;
+            }
+
+            .orders-table th,
+            .orders-table td {
+                padding: 10px 8px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 70px;
+                overflow: hidden;
+            }
+
+            .sidebar .section-title,
+            .sidebar .nav-link span,
+            .sidebar .badge,
+            .sidebar .logo-text {
+                display: none;
+            }
+
+            .nav-link {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .nav-link i {
+                margin: 0;
+                font-size: 18px;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .table-responsive {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-tools"></i>
+                <span class="logo-text">FerreJunior</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="section-title">Principal</div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin.admin_profile') }}" class="nav-link">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Mi Perfil</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Gestión</div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Usuarios</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin.low_stock_products') }}" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventario</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin.pending_orders') }}" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Pedidos</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Reportes</div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reportes</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navigation Bar -->
+        <div class="top-navbar">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Pedidos Completados</li>
+                </ol>
+            </nav>
+
+            <div class="user-menu">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">2</span>
+                </button>
+
+                <div class="user-info" onclick="toggleUserMenu()">
+                    <div class="user-avatar">
+                        {{ current_user.name[0].upper() if current_user.name else 'A' }}
+                    </div>
+                    <div class="user-details">
+                        <h6>{{ current_user.name or 'Admin' }}</h6>
+                        <small>{{ current_user.role.title() if current_user.role else 'Administrator' }}</small>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+
+                <div class="dropdown-menu" id="userDropdown" style="display: none;">
+                    <a class="dropdown-item" href="{{ url_for('admin.admin_profile') }}">
+                        <i class="fas fa-user"></i> Mi Perfil
+                    </a>
+                    <a class="dropdown-item" href="#settings">
+                        <i class="fas fa-cog"></i> Configuración
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="dashboard-content">
+            <div class="page-header">
+                <h1 class="page-title">Pedidos Completados</h1>
+                <p class="page-subtitle">Historial de pedidos enviados y entregados</p>
+            </div>
+
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+
+            <div class="orders-container">
+                {% if orders %}
+                <div class="table-responsive">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>N° Pedido</th>
+                                <th>Cliente</th>
+                                <th>Estado</th>
+                                <th>Total</th>
+                                <th>Fecha de Envío</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>
+                                    <div class="order-number">{{ order.order_number }}</div>
+                                </td>
+                                <td>
+                                    <div class="customer-info">{{ order.user.name if order.user else 'Cliente desconocido' }}</div>
+                                    <div class="customer-email">{{ order.user.email if order.user else '' }}</div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ order.status }}">
+                                        {% if order.status == 'shipped' %}
+                                            Enviado
+                                        {% elif order.status == 'delivered' %}
+                                            Entregado
+                                        {% else %}
+                                            {{ order.status.title() }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="amount">${{ "%.0f"|format(order.total_amount) }}</td>
+                                <td>
+                                    <div class="date-info">
+                                        {{ order.updated_at.strftime('%d/%m/%Y') if order.updated_at else 'N/A' }}
+                                    </div>
+                                    <div class="date-info">
+                                        {{ order.updated_at.strftime('%H:%M') if order.updated_at else '' }}
+                                    </div>
+                                </td>
+                                <td class="actions-cell">
+                                    <button class="action-btn view" onclick="viewOrder({{ order.id }})">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </button>
+                                    <button class="action-btn details" onclick="orderDetails({{ order.id }})">
+                                        <i class="fas fa-file-alt"></i> Detalles
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Aún no hay pedidos completados</h3>
+                    <p>No se han procesado pedidos completamente aún.</p>
+                    <p>Los pedidos aparecerán aquí una vez que sean enviados o entregados.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+        // User menu toggle
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Order actions
+        function viewOrder(orderId) {
+            alert('Ver pedido - Funcionalidad en desarrollo (ID: ' + orderId + ')');
+        }
+
+        function orderDetails(orderId) {
+            alert('Ver detalles del pedido - Funcionalidad en desarrollo (ID: ' + orderId + ')');
+        }
+
+        // Close user dropdown when clicking outside
+        window.onclick = function(event) {
+            const userDropdown = document.getElementById('userDropdown');
+            if (!event.target.closest('.user-info') && userDropdown.style.display === 'block') {
+                userDropdown.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects
+            const rows = document.querySelectorAll('.orders-table tr');
+            rows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.01)';
+                    this.style.transition = 'transform 0.2s';
+                });
+                row.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

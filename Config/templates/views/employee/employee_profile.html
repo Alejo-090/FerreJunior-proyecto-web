@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Empleado - FerreJunior</title>
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/employee_profile.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-tools"></i>
+                <span class="logo-text">FerreJunior</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="section-title">Principal</div>
+                <div class="nav-item">
+                    <a href="{{ url_for('employee.employee_dashboard') }}" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Mi Perfil</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-tasks"></i>
+                        <span>Mis Tareas</span>
+                        <span class="badge">8</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Operaciones</div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Pedidos</span>
+                        <span class="badge">12</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventario</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Clientes</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Soporte</div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reportes</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-headset"></i>
+                        <span>Soporte</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navigation Bar -->
+        <div class="top-navbar">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('employee.employee_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Mi Perfil</li>
+                </ol>
+            </nav>
+            
+            <div class="user-menu">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">2</span>
+                </button>
+                
+                <div class="user-info" onclick="toggleUserMenu()">
+                    <div class="user-avatar">
+                        {{ current_user.name[0].upper() if current_user.name else 'E' }}
+                    </div>
+                    <div class="user-details">
+                        <h6>{{ current_user.name or 'Empleado' }}</h6>
+                        <small>{{ current_user.role.title() if current_user.role else 'Employee' }}</small>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <div class="dropdown-menu" id="userDropdown" style="display: none;">
+                    <a class="dropdown-item" href="{{ url_for('employee.employee_profile') }}">
+                        <i class="fas fa-user"></i> Mi Perfil
+                    </a>
+                    <a class="dropdown-item" href="#settings">
+                        <i class="fas fa-cog"></i> Configuración
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="dashboard-content">
+            <div class="page-header">
+                <h1 class="page-title">Mi Perfil</h1>
+                <p class="page-subtitle">Gestiona tu información personal y revisa tu rendimiento</p>
+            </div>
+
+            <div class="profile-container">
+                <!-- Profile Sidebar -->
+                <div class="profile-sidebar">
+                    <div class="profile-avatar-section">
+                        <div class="profile-avatar">
+                            {{ current_user.name[0].upper() if current_user.name else 'E' }}
+                        </div>
+                        <h3 class="profile-name">{{ current_user.name or 'Empleado' }}</h3>
+                        <p class="profile-role">{{ current_user.role.title() if current_user.role else 'Empleado Operativo' }}</p>
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">89</div>
+                            <div class="stat-label">Días Activo</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">127</div>
+                            <div class="stat-label">Tareas Completadas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">95%</div>
+                            <div class="stat-label">Eficiencia</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">4.8</div>
+                            <div class="stat-label">Valoración</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions">
+                        <button class="profile-btn primary" onclick="showTab('personal')">
+                            <i class="fas fa-edit"></i> Editar Perfil
+                        </button>
+                        <button class="profile-btn secondary" onclick="showTab('performance')">
+                            <i class="fas fa-chart-line"></i> Mi Rendimiento
+                        </button>
+                        <button class="profile-btn secondary" onclick="showTab('security')">
+                            <i class="fas fa-shield-alt"></i> Seguridad
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile Main Content -->
+                <div class="profile-main">
+                    <div class="profile-tabs">
+                        <button class="tab-btn active" onclick="showTab('personal')">
+                            <i class="fas fa-user"></i> Información Personal
+                        </button>
+                        <button class="tab-btn" onclick="showTab('performance')">
+                            <i class="fas fa-chart-line"></i> Rendimiento
+                        </button>
+                        <button class="tab-btn" onclick="showTab('activity')">
+                            <i class="fas fa-history"></i> Actividad
+                        </button>
+                        <button class="tab-btn" onclick="showTab('security')">
+                            <i class="fas fa-shield-alt"></i> Seguridad
+                        </button>
+                    </div>
+
+                    <!-- Personal Information Tab -->
+                    <div id="tab-personal" class="tab-content active">
+                        <form id="profileForm" action="{{ url_for('employee.update_employee_profile') }}" method="POST">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nombre Completo</label>
+                                    <input type="text" name="name" class="form-control" value="{{ current_user.name or '' }}" placeholder="Ingresa tu nombre completo">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control" value="{{ current_user.email or '' }}" placeholder="tu@email.com">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Rol</label>
+                                    <input type="text" class="form-control" value="{{ current_user.role.title() if current_user.role else 'Employee' }}" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Fecha de Ingreso</label>
+                                    <input type="text" class="form-control" value="{{ current_user.created_at.strftime('%d/%m/%Y') if current_user.created_at else 'No disponible' }}" readonly>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" placeholder="+1 (555) 123-4567">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Área de Trabajo</label>
+                                <select class="form-control">
+                                    <option>Ventas</option>
+                                    <option>Inventario</option>
+                                    <option>Atención al Cliente</option>
+                                    <option>Logística</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Biografía</label>
+                                <textarea class="form-control" rows="3" placeholder="Cuéntanos sobre tu experiencia..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="profile-btn primary">
+                                    <i class="fas fa-save"></i> Guardar Cambios
+                                </button>
+                                <button type="reset" class="profile-btn secondary">
+                                    <i class="fas fa-undo"></i> Descartar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Performance Tab -->
+                    <div id="tab-performance" class="tab-content">
+                        <div class="performance-metrics">
+                            <div class="metric-card">
+                                <div class="metric-value">127</div>
+                                <div class="metric-label">Tareas Completadas</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">95%</div>
+                                <div class="metric-label">Tasa de Éxito</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">4.8</div>
+                                <div class="metric-label">Valoración Cliente</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">23</div>
+                                <div class="metric-label">Pedidos Procesados Hoy</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <h4 style="margin-bottom: 20px;">Objetivos del Mes</h4>
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <span>Procesar 150 pedidos</span>
+                                    <span style="color: #ff8559; font-weight: 600;">127/150 (85%)</span>
+                                </div>
+                                <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div style="background: #ff8559; height: 100%; width: 85%; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <span>Mantener satisfacción > 4.5</span>
+                                    <span style="color: #10b981; font-weight: 600;">4.8/5.0 (96%)</span>
+                                </div>
+                                <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div style="background: #10b981; height: 100%; width: 96%; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Tab -->
+                    <div id="tab-activity" class="tab-content">
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #f0fdf4; color: #22c55e;">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Pedido completado</h4>
+                                    <p>Procesaste exitosamente el pedido #1234 para María González</p>
+                                    <span class="activity-time">Hace 1 hora</span>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #fff7ed; color: #f59e0b;">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Inventario actualizado</h4>
+                                    <p>Actualizaste el stock de "Set de Brocas 20pzs" a 45 unidades</p>
+                                    <span class="activity-time">Hace 2 horas</span>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #f0f9ff; color: #3b82f6;">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Consulta atendida</h4>
+                                    <p>Resolviste la consulta técnica sobre taladros percutores</p>
+                                    <span class="activity-time">Hace 3 horas</span>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #fef2f2; color: #ef4444;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Alerta reportada</h4>
+                                    <p>Reportaste stock bajo en "Gafas de Seguridad"</p>
+                                    <span class="activity-time">Hace 1 día</span>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #f3e8ff; color: #8b5cf6;">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Valoración recibida</h4>
+                                    <p>Recibiste una valoración de 5 estrellas por tu atención</p>
+                                    <span class="activity-time">Hace 2 días</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tab -->
+                    <div id="tab-security" class="tab-content">
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>Cambiar Contraseña</h4>
+                                <p>Última actualización hace 15 días</p>
+                            </div>
+                            <div class="security-status enabled">
+                                <i class="fas fa-shield-alt"></i> Segura
+                            </div>
+                        </div>
+                        
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>Autenticación de Dos Factores</h4>
+                                <p>Protege tu cuenta con verificación adicional</p>
+                            </div>
+                            <div class="security-status disabled">
+                                <i class="fas fa-times-circle"></i> Deshabilitada
+                            </div>
+                        </div>
+                        
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>Sesiones Activas</h4>
+                                <p>Dispositivos conectados a tu cuenta</p>
+                            </div>
+                            <div class="security-status enabled">
+                                <i class="fas fa-mobile-alt"></i> 1 dispositivo
+                            </div>
+                        </div>
+                        
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h4>Notificaciones</h4>
+                                <p>Recibir alertas de seguridad por email</p>
+                            </div>
+                            <div class="security-status enabled">
+                                <i class="fas fa-bell"></i> Habilitadas
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 30px;">
+                            <button class="profile-btn primary" onclick="changePassword()">
+                                <i class="fas fa-key"></i> Cambiar Contraseña
+                            </button>
+                            <button class="profile-btn secondary" onclick="enable2FA()">
+                                <i class="fas fa-mobile-alt"></i> Habilitar 2FA
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/employee_profile.js') }}"></script>
+    
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+        }
+
+        // User menu toggle
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Profile actions
+        function changePassword() {
+            // Mostrar modal de cambio de contraseña
+            const modal = document.getElementById('passwordModal');
+            modal.style.display = 'block';
+        }
+
+        function enable2FA() {
+            if (confirm('¿Está seguro de que desea habilitar la autenticación de dos factores?')) {
+                fetch('/employee/profile/toggle-2fa', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
+            }
+        }
+
+        // Form submission
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // El formulario ahora se envía normalmente al servidor
+            this.submit();
+        });
+
+        // Close user dropdown when clicking outside
+        window.onclick = function(event) {
+            const userDropdown = document.getElementById('userDropdown');
+            if (!event.target.closest('.user-info') && userDropdown.style.display === 'block') {
+                userDropdown.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects
+            const cards = document.querySelectorAll('.stat-item, .security-item, .metric-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+
+    <!-- Password Change Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('passwordModal').style.display='none'">&times;</span>
+            <h3>Cambiar Contraseña</h3>
+            <form id="passwordForm" action="{{ url_for('employee.change_employee_password') }}" method="POST">
+                <div class="form-group">
+                    <label for="current_password">Contraseña Actual:</label>
+                    <input type="password" id="current_password" name="current_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">Nueva Contraseña:</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirmar Nueva Contraseña:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

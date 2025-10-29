@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Empleado - FerreJunior</title>
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/employee_dashboard.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-tools"></i>
+                <span class="logo-text">FerreJunior</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="section-title">Panel Principal</div>
+                <div class="nav-item">
+                    <a href="#dashboard" class="nav-link active" onclick="showSection('dashboard')">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#tasks" class="nav-link" onclick="showSection('tasks')">
+                        <i class="fas fa-tasks"></i>
+                        <span>Mis Tareas</span>
+                        <span class="badge">8</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Operaciones</div>
+                <div class="nav-item">
+                    <a href="#orders" class="nav-link" onclick="showSection('orders')">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Pedidos</span>
+                        <span class="badge">23</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#inventory" class="nav-link" onclick="showSection('inventory')">
+                        <i class="fas fa-box"></i>
+                        <span>Inventario</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#customers" class="nav-link" onclick="showSection('customers')">
+                        <i class="fas fa-users"></i>
+                        <span>Clientes</span>
+                        <span class="badge">15</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Herramientas</div>
+                <div class="nav-item">
+                    <a href="#reports" class="nav-link" onclick="showSection('reports')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reportes</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#support" class="nav-link" onclick="showSection('support')">
+                        <i class="fas fa-life-ring"></i>
+                        <span>Soporte</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navigation Bar -->
+        <div class="top-navbar">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Empleado</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" id="currentSection">Dashboard</li>
+                </ol>
+            </nav>
+            
+            <div class="user-menu">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">5</span>
+                </button>
+                
+                <div class="user-info" onclick="toggleUserMenu()">
+                    <div class="user-avatar">
+                        {{ (current_user.name or current_user.email)[0].upper() }}
+                    </div>
+                    <div class="user-details">
+                        <h6>{{ current_user.name or current_user.email }}</h6>
+                        <small>{{ current_user.role.title() }}</small>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <div class="dropdown-menu" id="userDropdown" style="display: none;">
+                    <a class="dropdown-item" href="{{ url_for('employee.employee_profile') }}">
+                        <i class="fas fa-user"></i> Mi Perfil
+                    </a>
+                    <a class="dropdown-item" href="#settings">
+                        <i class="fas fa-cog"></i> Configuración
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Dashboard Section -->
+            <div id="section-dashboard" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Panel de Empleado</h1>
+                    <p class="page-subtitle">Gestión operativa y atención al cliente</p>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>8</h3>
+                                <p>Tareas Pendientes</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +2 desde ayer
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #fff0eb; color: #ff8559;">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>23</h3>
+                                <p>Pedidos Hoy</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +15% vs ayer
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>15</h3>
+                                <p>Consultas Atendidas</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +20% esta semana
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #f0f9ff; color: #0ea5e9;">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>95%</h3>
+                                <p>Eficiencia</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +3% este mes
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #f0fdf4; color: #22c55e;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #fff0eb; color: #ff8559;">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h3 class="section-title-text">Mis Tareas Hoy</h3>
+                        </div>
+                        <div>
+                            <div class="task-item">
+                                <div>
+                                    <div class="task-title">Procesar pedido #1234</div>
+                                    <div class="task-meta">Vence en 2 horas</div>
+                                </div>
+                                <span class="priority-high">ALTA</span>
+                            </div>
+                            <div class="task-item">
+                                <div>
+                                    <div class="task-title">Actualizar inventario herramientas</div>
+                                    <div class="task-meta">Vence hoy</div>
+                                </div>
+                                <span class="priority-medium">MEDIA</span>
+                            </div>
+                            <div class="task-item">
+                                <div>
+                                    <div class="task-title">Responder consulta cliente</div>
+                                    <div class="task-meta">Vence mañana</div>
+                                </div>
+                                <span class="priority-low">BAJA</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h3 class="section-title-text">Gestión de Pedidos</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="showSection('orders')">
+                                <i class="fas fa-clock"></i>
+                                Pendientes
+                            </button>
+                            <button class="action-btn secondary" onclick="showPendingOrders()">
+                                <i class="fas fa-cog"></i>
+                                Procesar
+                            </button>
+                            <button class="action-btn secondary" onclick="showCompletedOrders()">
+                                <i class="fas fa-history"></i>
+                                Historial
+                            </button>
+                            <button class="action-btn secondary" onclick="openModal('orderModal')">
+                                <i class="fas fa-plus"></i>
+                                Nuevo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #f0f9ff; color: #0ea5e9;">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <h3 class="section-title-text">Control de Inventario</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="showSection('inventory')">
+                                <i class="fas fa-plus"></i>
+                                Agregar Producto
+                            </button>
+                            <button class="action-btn secondary" onclick="updateStock()">
+                                <i class="fas fa-edit"></i>
+                                Actualizar Stock
+                            </button>
+                            <button class="action-btn secondary" onclick="showSection('inventory')">
+                                <i class="fas fa-list"></i>
+                                Ver Inventario
+                            </button>
+                            <button class="action-btn secondary" onclick="showLowStock()">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Stock Bajo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #f0fdf4; color: #22c55e;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="section-title-text">Atención al Cliente</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="showSection('customers')">
+                                <i class="fas fa-comments"></i>
+                                Consultas
+                            </button>
+                            <button class="action-btn secondary" onclick="openChat()">
+                                <i class="fas fa-comment-dots"></i>
+                                Chat Vivo
+                            </button>
+                            <button class="action-btn secondary" onclick="showTickets()">
+                                <i class="fas fa-ticket-alt"></i>
+                                Tickets
+                            </button>
+                            <button class="action-btn secondary" onclick="showFAQ()">
+                                <i class="fas fa-book"></i>
+                                FAQ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Sections (Hidden by default) -->
+            <div id="section-tasks" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Mis Tareas</h1>
+                    <p class="page-subtitle">Gestionar tareas diarias y proyectos</p>
+                </div>
+
+                <div id="tasks-stats" class="stats-grid">
+                    <!-- Stats will be loaded dynamically -->
+                </div>
+
+                <div class="actions-container">
+                    <div class="action-section">
+                        <h3><i class="fas fa-list-check"></i> Lista de Tareas</h3>
+                        <div id="tasks-list" class="task-list">
+                            <!-- Tasks will be loaded dynamically -->
+                            <div class="loading-message">Cargando tareas...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-orders" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Gestión de Pedidos</h1>
+                    <p class="page-subtitle">Procesar y seguir pedidos de clientes</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Nuevos</h3>
+                            <p class="stat-number">12</p>
+                            <p class="stat-label">Pedidos pendientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>En Proceso</h3>
+                            <p class="stat-number">8</p>
+                            <p class="stat-label">Siendo preparados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Completados</h3>
+                            <p class="stat-number">35</p>
+                            <p class="stat-label">Pedidos finalizados hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ventas</h3>
+                            <p class="stat-number">$1,240</p>
+                            <p class="stat-label">Total procesado hoy</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-container">
+                    <div class="action-section">
+                        <h3><i class="fas fa-shopping-cart"></i> Pedidos Recientes</h3>
+                        <div class="action-buttons">
+                            <button onclick="showPendingOrders()" class="action-btn primary">
+                                <i class="fas fa-clock"></i> Ver Pendientes
+                            </button>
+                            <button onclick="showInProcessOrders()" class="action-btn secondary">
+                                <i class="fas fa-cog"></i> En Proceso
+                            </button>
+                            <button onclick="showCompletedOrders()" class="action-btn success">
+                                <i class="fas fa-check"></i> Completados
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <h3><i class="fas fa-plus"></i> Acciones de Pedidos</h3>
+                        <div class="action-buttons">
+                            <button onclick="createNewOrder()" class="action-btn primary">
+                                <i class="fas fa-plus"></i> Nuevo Pedido
+                            </button>
+                            <button onclick="searchOrder()" class="action-btn secondary">
+                                <i class="fas fa-search"></i> Buscar Pedido
+                            </button>
+                            <button onclick="generateOrderReport()" class="action-btn secondary">
+                                <i class="fas fa-chart-bar"></i> Reporte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-inventory" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Control de Inventario</h1>
+                    <p class="page-subtitle">Gestionar stock y productos</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total</h3>
+                            <p class="stat-number">892</p>
+                            <p class="stat-label">Productos en stock</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Stock Bajo</h3>
+                            <p class="stat-number">12</p>
+                            <p class="stat-label">Requieren reposición</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Entradas</h3>
+                            <p class="stat-number">45</p>
+                            <p class="stat-label">Productos ingresados hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-minus-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Salidas</h3>
+                            <p class="stat-number">28</p>
+                            <p class="stat-label">Productos vendidos hoy</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-container">
+                    <div class="action-section">
+                        <h3><i class="fas fa-warehouse"></i> Gestión de Stock</h3>
+                        <div class="action-buttons">
+                            <button onclick="updateStock()" class="action-btn primary">
+                                <i class="fas fa-edit"></i> Actualizar Stock
+                            </button>
+                            <button onclick="showLowStock()" class="action-btn warning">
+                                <i class="fas fa-exclamation-triangle"></i> Stock Bajo
+                            </button>
+                            <button onclick="addProduct()" class="action-btn success">
+                                <i class="fas fa-plus"></i> Agregar Producto
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <h3><i class="fas fa-search"></i> Búsqueda y Reportes</h3>
+                        <div class="action-buttons">
+                            <button onclick="searchProduct()" class="action-btn secondary">
+                                <i class="fas fa-search"></i> Buscar Producto
+                            </button>
+                            <button onclick="generateInventoryReport()" class="action-btn secondary">
+                                <i class="fas fa-chart-bar"></i> Reporte Inventario
+                            </button>
+                            <button onclick="exportInventory()" class="action-btn secondary">
+                                <i class="fas fa-download"></i> Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-customers" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Atención al Cliente</h1>
+                    <p class="page-subtitle">Gestionar consultas y soporte</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Tickets</h3>
+                            <p class="stat-number">15</p>
+                            <p class="stat-label">Tickets abiertos</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Chat</h3>
+                            <p class="stat-number">8</p>
+                            <p class="stat-label">Conversaciones activas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Satisfacción</h3>
+                            <p class="stat-number">4.8</p>
+                            <p class="stat-label">Puntuación promedio</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Tiempo</h3>
+                            <p class="stat-number">12m</p>
+                            <p class="stat-label">Respuesta promedio</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-container">
+                    <div class="action-section">
+                        <h3><i class="fas fa-headset"></i> Centro de Soporte</h3>
+                        <div class="action-buttons">
+                            <button onclick="showTickets()" class="action-btn primary">
+                                <i class="fas fa-ticket-alt"></i> Ver Tickets
+                            </button>
+                            <button onclick="openChat()" class="action-btn success">
+                                <i class="fas fa-comments"></i> Chat en Vivo
+                            </button>
+                            <button onclick="createTicket()" class="action-btn secondary">
+                                <i class="fas fa-plus"></i> Crear Ticket
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <h3><i class="fas fa-question-circle"></i> Recursos de Ayuda</h3>
+                        <div class="action-buttons">
+                            <button onclick="showFAQ()" class="action-btn primary">
+                                <i class="fas fa-question"></i> Preguntas Frecuentes
+                            </button>
+                            <button onclick="showGuides()" class="action-btn secondary">
+                                <i class="fas fa-book"></i> Guías de Usuario
+                            </button>
+                            <button onclick="contactSupport()" class="action-btn warning">
+                                <i class="fas fa-phone"></i> Contactar Soporte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-reports" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Reportes</h1>
+                    <p class="page-subtitle">Generar reportes de actividad</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ventas</h3>
+                            <p class="stat-number">$2,450</p>
+                            <p class="stat-label">Total hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pedidos</h3>
+                            <p class="stat-number">47</p>
+                            <p class="stat-label">Procesados hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Clientes</h3>
+                            <p class="stat-number">23</p>
+                            <p class="stat-label">Atendidos hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Eficiencia</h3>
+                            <p class="stat-number">95%</p>
+                            <p class="stat-label">Tareas completadas</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-container">
+                    <div class="action-section">
+                        <h3><i class="fas fa-chart-bar"></i> Reportes de Ventas</h3>
+                        <div class="action-buttons">
+                            <button onclick="generateDailyReport()" class="action-btn primary">
+                                <i class="fas fa-calendar-day"></i> Reporte Diario
+                            </button>
+                            <button onclick="generateWeeklyReport()" class="action-btn secondary">
+                                <i class="fas fa-calendar-week"></i> Reporte Semanal
+                            </button>
+                            <button onclick="generateMonthlyReport()" class="action-btn secondary">
+                                <i class="fas fa-calendar-alt"></i> Reporte Mensual
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <h3><i class="fas fa-download"></i> Exportar Datos</h3>
+                        <div class="action-buttons">
+                            <button onclick="exportSalesData()" class="action-btn success">
+                                <i class="fas fa-file-excel"></i> Ventas Excel
+                            </button>
+                            <button onclick="exportInventoryData()" class="action-btn success">
+                                <i class="fas fa-file-csv"></i> Inventario CSV
+                            </button>
+                            <button onclick="exportCustomerData()" class="action-btn success">
+                                <i class="fas fa-file-pdf"></i> Clientes PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="action-section">
+                    <p>Reportes - En desarrollo</p>
+                </div>
+            </div>
+
+            <div id="section-support" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Soporte</h1>
+                    <p class="page-subtitle">Ayuda y documentación</p>
+                </div>
+                <div class="action-section">
+                    <p>Soporte - En desarrollo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Bootstrap JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/employee_dashboard.js') }}"></script>
+</body>
+</html>

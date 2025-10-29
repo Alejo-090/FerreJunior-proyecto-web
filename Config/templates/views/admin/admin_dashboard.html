@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - FerreJunior</title>
+    
+    <link href="{{ url_for('static', filename='css/admin_dashboard.css') }}" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-tools"></i>
+                <span class="logo-text">FerreJunior</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="section-title">Principal</div>
+                <div class="nav-item">
+                    <a href="#dashboard" class="nav-link active" onclick="showSection('dashboard')">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#analytics" class="nav-link" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analytics</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Gestión</div>
+                <div class="nav-item">
+                    <a href="#users" class="nav-link" onclick="showSection('users')">
+                        <i class="fas fa-users"></i>
+                        <span>Usuarios</span>
+                        <span class="badge">156</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#products" class="nav-link" onclick="showSection('products')">
+                        <i class="fas fa-box"></i>
+                        <span>Productos</span>
+                        <span class="badge">842</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#orders" class="nav-link" onclick="showSection('orders')">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Pedidos</span>
+                        <span class="badge">23</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#inventory" class="nav-link" onclick="showSection('inventory')">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Inventario</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="section-title">Sistema</div>
+                <div class="nav-item">
+                    <a href="#reports" class="nav-link" onclick="showSection('reports')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reportes</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#settings" class="nav-link" onclick="showSection('settings')">
+                        <i class="fas fa-cog"></i>
+                        <span>Configuración</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#support" class="nav-link" onclick="showSection('support')">
+                        <i class="fas fa-life-ring"></i>
+                        <span>Soporte</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navigation Bar -->
+        <div class="top-navbar">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Admin</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" id="currentSection">Dashboard</li>
+                </ol>
+            </nav>
+            
+            <div class="user-menu">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                
+                <div class="user-info" onclick="toggleUserMenu()">
+                    <div class="user-avatar">
+                        {{ (current_user.name or current_user.email)[0].upper() }}
+                    </div>
+                    <div class="user-details">
+                        <h6>{{ current_user.name or current_user.email }}</h6>
+                        <small>{{ current_user.role.title() }}</small>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <div class="dropdown-menu" id="userDropdown" style="display: none;">
+                    <a class="dropdown-item" href="{{ url_for('admin.admin_profile') }}">
+                        <i class="fas fa-user"></i> Mi Perfil
+                    </a>
+                    <a class="dropdown-item" href="#settings">
+                        <i class="fas fa-cog"></i> Configuración
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Dashboard Section -->
+            <div id="section-dashboard" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Panel de Administración</h1>
+                    <p class="page-subtitle">Resumen completo del sistema FerreJunior</p>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>156</h3>
+                                <p>Total Usuarios</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +12% este mes
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>842</h3>
+                                <p>Productos Activos</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +5% esta semana
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-box"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>23</h3>
+                                <p>Pedidos Hoy</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +8% vs ayer
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #f0f9ff; color: #0ea5e9;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3>$15,780</h3>
+                                <p>Ingresos del Mes</p>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +18% vs anterior
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #f0fdf4; color: #22c55e;">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="section-title">Gestión de Usuarios</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="openModal('userModal')">
+                                <i class="fas fa-user-plus"></i>
+                                Crear Usuario
+                            </button>
+                            <button class="action-btn secondary" onclick="showSection('users')">
+                                <i class="fas fa-list"></i>
+                                Ver Todos
+                            </button>
+                            <button class="action-btn secondary" onclick="openModal('importModal')">
+                                <i class="fas fa-upload"></i>
+                                Importar
+                            </button>
+                            <button class="action-btn secondary" onclick="exportUsers()">
+                                <i class="fas fa-download"></i>
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <h3 class="section-title">Gestión de Productos</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="openProductModal()">
+                                <i class="fas fa-plus"></i>
+                                Nuevo Producto
+                            </button>
+                            <button class="action-btn secondary" onclick="showSection('inventory')">
+                                <i class="fas fa-warehouse"></i>
+                                Inventario
+                            </button>
+                            <button class="action-btn secondary" onclick="showSection('products')">
+                                <i class="fas fa-tags"></i>
+                                Categorías
+                            </button>
+                            <button class="action-btn secondary" onclick="showLowStock()">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Stock Bajo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #f0f9ff; color: #0ea5e9;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h3 class="section-title">Gestión de Pedidos</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="showSection('orders')">
+                                <i class="fas fa-list"></i>
+                                Todos los Pedidos
+                            </button>
+                            <button class="action-btn secondary" onclick="showPendingOrders()">
+                                <i class="fas fa-clock"></i>
+                                Pendientes
+                            </button>
+                            <button class="action-btn secondary" onclick="showCompletedOrders()">
+                                <i class="fas fa-check"></i>
+                                Completados
+                            </button>
+                            <button class="action-btn secondary" onclick="openModal('orderModal')">
+                                <i class="fas fa-plus"></i>
+                                Crear Pedido
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #f0fdf4; color: #22c55e;">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3 class="section-title">Reportes y Análisis</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="showSection('analytics')">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </button>
+                            <button class="action-btn secondary" onclick="showSection('reports')">
+                                <i class="fas fa-chart-line"></i>
+                                Generar Reportes
+                            </button>
+                            <button class="action-btn secondary" onclick="generateReport('daily')">
+                                <i class="fas fa-calendar-day"></i>
+                                Rep. Diario
+                            </button>
+                            <button class="action-btn secondary" onclick="generateReport('weekly')">
+                                <i class="fas fa-calendar-week"></i>
+                                Rep. Semanal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Sections (Hidden by default) -->
+            <div id="section-users" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Gestión de Usuarios</h1>
+                    <p class="page-subtitle">Administrar cuentas y permisos de usuario</p>
+                </div>
+                <div class="action-section">
+                    <div class="section-header">
+                        <div class="section-icon" style="background: #fff0eb; color: #ff6b35;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="section-title">Acciones Disponibles</h3>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary" onclick="openModal('userModal')">
+                            <i class="fas fa-user-plus"></i>
+                            Crear Usuario
+                        </button>
+                        <button class="action-btn secondary" onclick="showExportUsers()">
+                            <i class="fas fa-download"></i>
+                            Exportar Usuarios
+                        </button>
+                        <button class="action-btn secondary" onclick="openModal('importModal')">
+                            <i class="fas fa-upload"></i>
+                            Importar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-products" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Gestión de Productos</h1>
+                    <p class="page-subtitle">Administrar catálogo y categorías</p>
+                </div>
+                <div id="products-list-content">
+                    <div class="action-section">
+                        <div class="section-header">
+                            <div class="section-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <h3 class="section-title">Acciones Disponibles</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="openProductModal()">
+                                <i class="fas fa-plus"></i>
+                                Nuevo Producto
+                            </button>
+                            <button class="action-btn secondary" onclick="showLowStock()">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Ver Stock Bajo
+                            </button>
+                            <button class="action-btn secondary" onclick="openModal('categoryModal')">
+                                <i class="fas fa-tags"></i>
+                                Categorías
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-orders" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Gestión de Pedidos</h1>
+                    <p class="page-subtitle">Procesar y seguir pedidos</p>
+                </div>
+                <div class="action-section">
+                    <div class="section-header">
+                        <div class="section-icon" style="background: #f0f9ff; color: #0ea5e9;">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 class="section-title">Acciones Disponibles</h3>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary" onclick="openModal('orderModal')">
+                            <i class="fas fa-plus"></i>
+                            Nuevo Pedido
+                        </button>
+                        <button class="action-btn secondary" onclick="showPendingOrders()">
+                            <i class="fas fa-clock"></i>
+                            Ver Pendientes
+                        </button>
+                        <button class="action-btn secondary" onclick="showCompletedOrders()">
+                            <i class="fas fa-check"></i>
+                            Ver Completados
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-inventory" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Control de Inventario</h1>
+                    <p class="page-subtitle">Gestionar stock y almacén</p>
+                </div>
+                <div class="action-section">
+                    <div class="section-header">
+                        <div class="section-icon" style="background: #f3e8ff; color: #7c3aed;">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <h3 class="section-title">Acciones Disponibles</h3>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary" onclick="showLowStock()">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Alertas de Stock
+                        </button>
+                        <button class="action-btn secondary" onclick="openModal('inventoryModal')">
+                            <i class="fas fa-plus"></i>
+                            Agregar Stock
+                        </button>
+                        <button class="action-btn secondary" onclick="openModal('adjustmentModal')">
+                            <i class="fas fa-edit"></i>
+                            Ajustes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-analytics" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Analytics</h1>
+                    <p class="page-subtitle">Análisis de datos y métricas</p>
+                </div>
+                <div class="action-section">
+                    <p>Sección de analytics - En desarrollo</p>
+                </div>
+            </div>
+
+            <!-- Export Users Section -->
+            <div id="section-export-users" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Exportar Usuarios</h1>
+                    <p class="page-subtitle">Descargar lista completa de usuarios del sistema</p>
+                </div>
+                <div id="export-users-content">
+                    <div class="action-section">
+                        <p>Cargando datos de usuarios...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Products Section -->
+            <div id="section-low-stock" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Productos con Stock Bajo</h1>
+                    <p class="page-subtitle">Productos que requieren atención inmediata</p>
+                </div>
+                <div id="low-stock-content">
+                    <div class="action-section">
+                        <p>Cargando productos con stock bajo...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Orders Section -->
+            <div id="section-pending-orders" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Pedidos Pendientes</h1>
+                    <p class="page-subtitle">Pedidos que requieren procesamiento</p>
+                </div>
+                <div id="pending-orders-content">
+                    <div class="action-section">
+                        <p>Cargando pedidos pendientes...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completed Orders Section -->
+            <div id="section-completed-orders" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Pedidos Completados</h1>
+                    <p class="page-subtitle">Historial de pedidos procesados</p>
+                </div>
+                <div id="completed-orders-content">
+                    <div class="action-section">
+                        <p>Cargando pedidos completados...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="section-reports" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Generar Reportes</h1>
+                    <p class="page-subtitle">Reportes del sistema y estadísticas</p>
+                </div>
+                <div id="reports-content">
+                    <div class="action-section">
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="generateReport('daily')">
+                                <i class="fas fa-calendar-day"></i>
+                                Reporte Diario
+                            </button>
+                            <button class="action-btn primary" onclick="generateReport('weekly')">
+                                <i class="fas fa-calendar-week"></i>
+                                Reporte Semanal
+                            </button>
+                            <button class="action-btn primary" onclick="generateReport('monthly')">
+                                <i class="fas fa-calendar-alt"></i>
+                                Reporte Mensual
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Generated Section -->
+            <div id="section-report-generated" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title" id="report-title">Reporte Generado</h1>
+                    <p class="page-subtitle">Vista detallada del reporte solicitado</p>
+                </div>
+                <div id="report-generated-content">
+                    <div class="action-section">
+                        <p>Cargando reporte...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-settings" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Configuración</h1>
+                    <p class="page-subtitle">Configurar sistema y preferencias</p>
+                </div>
+                <div class="action-section">
+                    <p>Sección de configuración - En desarrollo</p>
+                </div>
+            </div>
+
+            <div id="section-support" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Soporte</h1>
+                    <p class="page-subtitle">Ayuda y documentación</p>
+                </div>
+                <div class="action-section">
+                    <p>Sección de soporte - En desarrollo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Crear Nuevo Usuario</h2>
+                <span class="modal-close" onclick="closeModal('userModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Formulario para crear usuario - En desarrollo</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="productModalTitle">Crear Nuevo Producto</h2>
+                <span class="modal-close" onclick="closeModal('productModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId" name="productId">
+
+                    <div class="form-group">
+                        <label for="productName">Nombre del Producto *</label>
+                        <input type="text" id="productName" name="name" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productSKU">SKU *</label>
+                        <input type="text" id="productSKU" name="sku" required class="form-control">
+                        <small class="form-text text-muted">Código único del producto</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="productPrice">Precio *</label>
+                            <input type="number" id="productPrice" name="price" step="0.01" min="0" required class="form-control">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="productStock">Stock Inicial</label>
+                            <input type="number" id="productStock" name="stock_quantity" min="0" class="form-control" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="productCategory">Categoría</label>
+                            <select id="productCategory" name="category_id" class="form-control">
+                                <option value="">Seleccionar categoría...</option>
+                                <!-- Las opciones se cargarán dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="productBrand">Marca</label>
+                            <input type="text" id="productBrand" name="brand" class="form-control" placeholder="ej: Bosch, Stanley, etc.">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productMinStock">Stock Mínimo</label>
+                        <input type="number" id="productMinStock" name="min_stock_level" min="0" class="form-control" value="10">
+                        <small class="form-text text-muted">Nivel mínimo antes de mostrar alerta de stock bajo</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productDescription">Descripción</label>
+                        <textarea id="productDescription" name="description" class="form-control" rows="3" placeholder="Descripción detallada del producto..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="productSubmitBtn">
+                            <i class="fas fa-save"></i>
+                            <span id="productSubmitText">Crear Producto</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="categoryModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="categoryModalTitle">Crear Nueva Categoría</h2>
+                <span class="modal-close" onclick="closeModal('categoryModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId" name="categoryId">
+
+                    <div class="form-group">
+                        <label for="categoryName">Nombre de la Categoría *</label>
+                        <input type="text" id="categoryName" name="name" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoryParent">Categoría Padre</label>
+                        <select id="categoryParent" name="parent_id" class="form-control">
+                            <option value="">Ninguna (Categoría principal)</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                        <small class="form-text text-muted">Opcional: seleccionar si es una subcategoría</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoryDescription">Descripción</label>
+                        <textarea id="categoryDescription" name="description" class="form-control" rows="3" placeholder="Descripción de la categoría..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('categoryModal')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="categorySubmitBtn">
+                            <i class="fas fa-save"></i>
+                            <span id="categorySubmitText">Crear Categoría</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="inventoryModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="inventoryModalTitle">Agregar Stock</h2>
+                <span class="modal-close" onclick="closeModal('inventoryModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="inventoryForm">
+                    <input type="hidden" id="inventoryProductId" name="productId">
+
+                    <div class="form-group">
+                        <label for="inventoryProductSelect">Producto *</label>
+                        <select id="inventoryProductSelect" name="productId" required class="form-control">
+                            <option value="">Seleccionar producto...</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventoryCurrentStock">Stock Actual</label>
+                        <input type="number" id="inventoryCurrentStock" readonly class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventoryQuantity">Cantidad a Agregar *</label>
+                        <input type="number" id="inventoryQuantity" name="quantity" min="1" required class="form-control">
+                        <small class="form-text text-muted">Cantidad de unidades a agregar al inventario</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventoryReason">Motivo</label>
+                        <select id="inventoryReason" name="reason" class="form-control">
+                            <option value="purchase">Compra a proveedor</option>
+                            <option value="return">Devolución</option>
+                            <option value="adjustment">Ajuste de inventario</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventoryNotes">Notas</label>
+                        <textarea id="inventoryNotes" name="notes" class="form-control" rows="2" placeholder="Notas adicionales..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('inventoryModal')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="inventorySubmitBtn">
+                            <i class="fas fa-plus"></i>
+                            <span id="inventorySubmitText">Agregar Stock</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="adjustmentModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="adjustmentModalTitle">Ajuste de Inventario</h2>
+                <span class="modal-close" onclick="closeModal('adjustmentModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="adjustmentForm">
+                    <input type="hidden" id="adjustmentProductId" name="productId">
+
+                    <div class="form-group">
+                        <label for="adjustmentProductSelect">Producto *</label>
+                        <select id="adjustmentProductSelect" name="productId" required class="form-control">
+                            <option value="">Seleccionar producto...</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adjustmentCurrentStock">Stock Actual</label>
+                        <input type="number" id="adjustmentCurrentStock" readonly class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adjustmentNewStock">Nuevo Stock Total *</label>
+                        <input type="number" id="adjustmentNewStock" name="newStock" min="0" required class="form-control">
+                        <small class="form-text text-muted">El stock total después del ajuste</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adjustmentType">Tipo de Ajuste</label>
+                        <select id="adjustmentType" name="adjustmentType" class="form-control">
+                            <option value="increase">Aumento</option>
+                            <option value="decrease">Disminución</option>
+                            <option value="set">Establecer valor exacto</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adjustmentReason">Motivo *</label>
+                        <select id="adjustmentReason" name="reason" required class="form-control">
+                            <option value="">Seleccionar motivo...</option>
+                            <option value="damaged">Producto dañado</option>
+                            <option value="lost">Producto perdido</option>
+                            <option value="counting_error">Error de conteo</option>
+                            <option value="theft">Robo</option>
+                            <option value="correction">Corrección</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adjustmentNotes">Notas *</label>
+                        <textarea id="adjustmentNotes" name="notes" required class="form-control" rows="2" placeholder="Explique el motivo del ajuste..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('adjustmentModal')">Cancelar</button>
+                        <button type="submit" class="btn btn-warning" id="adjustmentSubmitBtn">
+                            <i class="fas fa-edit"></i>
+                            <span id="adjustmentSubmitText">Aplicar Ajuste</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="orderModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="orderModalTitle">Detalles del Pedido</h2>
+                <span class="modal-close" onclick="closeModal('orderModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="orderDetailsContent">
+                    <p>Cargando detalles del pedido...</p>
+                </div>
+                <div id="orderStatusForm" style="display: none;">
+                    <form id="updateOrderStatusForm">
+                        <input type="hidden" id="statusOrderId" name="orderId">
+
+                        <div class="form-group">
+                            <label for="orderStatus">Estado del Pedido</label>
+                            <select id="orderStatus" name="status" class="form-control">
+                                <option value="pending">Pendiente</option>
+                                <option value="processing">En Proceso</option>
+                                <option value="shipped">Enviado</option>
+                                <option value="delivered">Entregado</option>
+                                <option value="cancelled">Cancelado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="cancelOrderStatusUpdate()">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" id="orderStatusSubmitBtn">
+                                <i class="fas fa-save"></i>
+                                Actualizar Estado
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+    
+    <!-- App JS (helpers like formatCOP) -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

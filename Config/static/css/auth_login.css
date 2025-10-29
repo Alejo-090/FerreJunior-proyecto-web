@@ -1,0 +1,62 @@
+body {
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.bg-login-image {
+    background: linear-gradient(to right, #ff6b35, #ea580c);
+}
+
+.btn-login {
+    background-color: #ff6b35;
+    border-color: #ff6b35;
+}
+
+.btn-login:hover {
+    background-color: #ea580c;
+    border-color: #ea580c;
+}
+
+.text-login {
+    color: #ff6b35;
+}
+
+.login-box {
+    box-shadow: 0px 25px 50px 0px rgba(0,0,0,0.25);
+    border-radius: 8px;
+}
+
+.form-control {
+    border-radius: 8px;
+    height: 50px;
+}
+
+.social-login-btn {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    height: 38px;
+}
+
+.divider-text {
+    position: relative;
+    text-align: center;
+    margin: 15px 0;
+}
+
+.divider-text span {
+    background-color: #fff;
+    padding: 0 15px;
+    color: #64748b;
+    position: relative;
+    z-index: 1;
+}
+
+.divider-text:after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    border-bottom: 1px solid #e5e7eb;
+    top: 50%;
+    left: 0;
+    z-index: 0;
+}

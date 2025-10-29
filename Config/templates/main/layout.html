@@ -7,8 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>SB Admin 2 - Dashboard</title>
+    <title>FerreJunior - Dashboard</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
@@ -306,7 +307,7 @@
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <a class="btn btn-primary" href="{{ url_for('auth.logout') }}">Logout</a>
                 </div>
             </div>
         </div>
@@ -338,8 +339,44 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    !-- JavaScript -->
-<script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
+    <script>
+        // Automatically add CSRF token and credentials for same-origin fetch requests.
+        (function() {
+            const originalFetch = window.fetch.bind(window);
+            window.fetch = function(input, init) {
+                try {
+                    let url = (typeof input === 'string') ? input : (input && input.url) || '';
+                    const absolute = new URL(url, window.location.href);
+                    const sameOrigin = absolute.origin === window.location.origin;
+
+                    if (sameOrigin) {
+                        init = init || {};
+                        // ensure credentials sent so server session cookie is included
+                        if (!init.credentials) init.credentials = 'same-origin';
+                        init.headers = init.headers || {};
+                        // if header not already set, add from meta tag
+                        if (!init.headers['X-CSRFToken'] && document.querySelector('meta[name="csrf-token"]')) {
+                            init.headers['X-CSRFToken'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        }
+                    }
+                } catch (e) {
+                    // ignore and fall back to original fetch
+                }
+                return originalFetch(input, init);
+            };
+
+            // Configure axios to send credentials and CSRF header too
+            try {
+                if (window.axios) {
+                    axios.defaults.withCredentials = true;
+                    const meta = document.querySelector('meta[name="csrf-token"]');
+                    if (meta) axios.defaults.headers.common['X-CSRFToken'] = meta.getAttribute('content');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <!-- JavaScript -->
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - FerreJunior</title>
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
+    <link href="{{ url_for('static', filename='css/product-placeholders.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/product_detail.css') }}" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+    <!-- Header/Navbar -->
+    <header class="header">
+        <div class="header-content">
+            <a href="{{ url_for('client.client_dashboard') }}" class="logo">
+                <i class="fas fa-tools"></i>
+                FerreJunior
+            </a>
+            <div class="header-icons">
+                <div class="user-info" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Carrito</span>
+                    <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+                </div>
+                <div class="user-info dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-user"></i>
+                        <span>Juan Pérez</span>
+                    </a>
+                    <!-- Dropdown - User Information -->
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="{{ url_for('main.profile') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Mi Perfil
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-history fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Mis Pedidos
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Configuración
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+                <a href="{{ url_for('client.client_dashboard') }}" class="home-btn">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb-nav">
+            <div class="breadcrumb">
+                <a href="{{ url_for('client.client_dashboard') }}">Inicio</a>
+                <div class="breadcrumb-separator"></div>
+                <a href="{{ url_for('client.catalog') }}">Herramientas</a>
+                <div class="breadcrumb-separator"></div>
+                <a href="{{ url_for('client.catalog') }}">Taladros</a>
+                <div class="breadcrumb-separator"></div>
+                <span class="active">{{ product.name }}</span>
+            </div>
+        </div>
+
+        <!-- Product Detail Main Section -->
+        <div class="product-detail">
+            <!-- Product Image Section -->
+            <div class="product-image-section">
+                <div class="product-image-container">
+                    {% if product.image %}
+                        <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image" style="width:100%;height:100%;object-fit:contain;border-radius:8px;">
+                    {% else %}
+                        <div class="product-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="product-name">{{ product.name }}</div>
+                            <div class="no-image-text">Imagen no disponible</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Product Info Section -->
+            <div class="product-info-section">
+                <!-- Product Header -->
+                <div class="product-header">
+                    <div class="stock-sku">
+                        {% if product.in_stock %}
+                        <div class="stock-badge">En Stock</div>
+                        {% else %}
+                        <div class="stock-badge" style="background: #fee2e2; color: #991b1b;">Agotado</div>
+                        {% endif %}
+                        <span class="sku-text">{{ product.sku }}</span>
+                    </div>
+                    
+                    <h1 class="product-title">{{ product.name }}</h1>
+                    <p class="product-brand">Marca: {{ product.brand }}</p>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            {% for i in range(5) %}
+                                {% if i < product.rating %}
+                                    <i class="fas fa-star star"></i>
+                                {% else %}
+                                    <i class="far fa-star star empty"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="reviews-text">({{ product.reviews }} reseñas)</span>
+                    </div>
+                </div>
+
+                <!-- Product Purchase Section -->
+                <div class="product-purchase">
+                    <div class="price-section">
+                        <span class="current-price">{{ product.price | cop }}</span>
+                        {% if product.price < 100000 %}
+                        <span class="original-price">{{ (product.price * 1.33) | cop }}</span>
+                        <div class="discount-badge">25% OFF</div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if product.special_price %}
+                    <p class="special-offer">Precio especial {{ product.special_price }}</p>
+                    {% endif %}
+
+                    <div class="quantity-section">
+                        <label class="quantity-label">Cantidad:</label>
+                        <div class="quantity-controls">
+                            <button type="button" class="quantity-btn" onclick="decreaseQuantity()">-</button>
+                            <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="10">
+                            <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+                        </div>
+                    </div>
+
+                    <div class="purchase-buttons">
+                        <button class="btn-add-cart" onclick="addToCart({{ product.id }})" {% if not product.in_stock %}disabled title="Sin stock"{% endif %}>
+                            <i class="fas fa-shopping-cart"></i>
+                            Añadir al Carrito
+                        </button>
+                        <button class="btn-buy-now" onclick="buyNow({{ product.id }})" {% if not product.in_stock %}disabled title="Sin stock"{% endif %}>
+                            Comprar Ahora
+                        </button>
+                        <button class="btn-favorites" onclick="addToFavorites({{ product.id }})">
+                            <i class="far fa-heart"></i>
+                            Añadir a Favoritos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shipping Info -->
+                <div class="shipping-info">
+                    <div class="shipping-header">
+                        <i class="fas fa-truck shipping-icon"></i>
+                        <span class="shipping-title">Envío Gratis</span>
+                    </div>
+                    <p class="shipping-description">En pedidos superiores a $50. Entrega en 2-3 días hábiles.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Tabs -->
+        <div class="product-tabs">
+            <div class="tabs-nav">
+                <button class="tab-button tab-description active" onclick="showTab('description')">
+                    Descripción
+                </button>
+                <button class="tab-button tab-specifications" onclick="showTab('specifications')">
+                    Especificaciones
+                </button>
+                <button class="tab-button tab-reviews" onclick="showTab('reviews')">
+                    Reseñas
+                </button>
+                <button class="tab-button tab-warranty" onclick="showTab('warranty')">
+                    Garantía
+                </button>
+            </div>
+
+            <div class="tab-content">
+                <div id="description" class="tab-panel active">
+                    <h3 class="section-title">Descripción del Producto</h3>
+                    <p class="section-description">{{ product.description }}</p>
+                    
+                    {% if product.features %}
+                    <ul class="features-list">
+                        {% for feature in product.features %}
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            {{ feature }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <div id="specifications" class="tab-panel">
+                    <h3 class="section-title">Especificaciones Técnicas</h3>
+                    <div class="specifications-table">
+                        {% for key, value in product.specifications.items() %}
+                        <div class="spec-row" style="display: flex; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+                            <div style="width: 30%; font-weight: 500; color: #374151;">{{ key }}:</div>
+                            <div style="color: #6b7280;">{{ value }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="reviews" class="tab-panel">
+                    <h3 class="section-title">Reseñas de Clientes</h3>
+                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 8px; margin-bottom: 24px;">
+                        <div style="font-size: 48px; font-weight: 700; color: #ff6b35; margin-bottom: 8px;">{{ product.rating }}</div>
+                        <div class="stars" style="justify-content: center; margin-bottom: 8px;">
+                            {% for i in range(5) %}
+                                {% if i < product.rating %}
+                                    <i class="fas fa-star star"></i>
+                                {% else %}
+                                    <i class="far fa-star star empty"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span style="color: #6b7280; font-size: 14px;">Basado en {{ product.reviews }} reseñas</span>
+                    </div>
+                    
+                    <div class="reviews-list">
+                        <div style="padding: 16px 0; border-bottom: 1px solid #e5e7eb;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong>Carlos M.</strong>
+                                <div class="stars">
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                </div>
+                            </div>
+                            <p style="color: #6b7280; margin-bottom: 4px;">Excelente producto, muy buena calidad y potencia. Lo recomiendo.</p>
+                            <small style="color: #9ca3af;">Hace 2 semanas</small>
+                        </div>
+                        
+                        <div style="padding: 16px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong>Ana L.</strong>
+                                <div class="stars">
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="fas fa-star star"></i>
+                                    <i class="far fa-star star empty"></i>
+                                </div>
+                            </div>
+                            <p style="color: #6b7280; margin-bottom: 4px;">Muy buen producto, llegó rápido y en perfectas condiciones.</p>
+                            <small style="color: #9ca3af;">Hace 1 mes</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="warranty" class="tab-panel">
+                    <h3 class="section-title">Información de Garantía</h3>
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <div style="display: flex; align-items: flex-start; gap: 16px;">
+                            <i class="fas fa-shield-alt" style="color: #3b82f6; font-size: 20px; margin-top: 4px;"></i>
+                            <div>
+                                <h5 style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">Garantía del Fabricante</h5>
+                                <p style="color: #6b7280;">{{ product.specifications.Garantía }} de garantía contra defectos de fabricación.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 16px;">
+                            <i class="fas fa-tools" style="color: #3b82f6; font-size: 20px; margin-top: 4px;"></i>
+                            <div>
+                                <h5 style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">Servicio Técnico</h5>
+                                <p style="color: #6b7280;">Contamos con servicio técnico especializado y repuestos originales.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 16px;">
+                            <i class="fas fa-undo" style="color: #3b82f6; font-size: 20px; margin-top: 4px;"></i>
+                            <div>
+                                <h5 style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">Política de Devolución</h5>
+                                <p style="color: #6b7280;">30 días para devoluciones sin preguntas, producto en condiciones originales.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="related-products">
+            <h3 class="related-title">Productos Relacionados</h3>
+                <div class="products-grid">
+                {% for related in related_products %}
+                <div class="product-card" onclick="goToProduct({{ related.id }})">
+                    <div class="related-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <span>Sin imagen</span>
+                </div>
+                    <div class="product-card-info">
+                        <h6 class="product-card-title">{{ related.name }}</h6>
+                        <p class="product-card-price">{{ related.price | cop }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar del Carrito -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>
+                <i class="fas fa-shopping-cart"></i>
+                Carrito de Compras
+            </h3>
+            <button class="cart-close" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="cart-content">
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items will be loaded dynamically from server -->
+            </div>
+        </div>
+        
+        <div class="cart-footer">
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="cartSubtotal">$215,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>Envío:</span>
+                    <span id="cartShipping">$8,000</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span id="cartTotal">$223,000</span>
+                </div>
+            </div>
+            
+            <div class="cart-actions">
+                <button class="btn-checkout" onclick="window.location.href='{{ url_for('client.checkout') }}'">
+                    <i class="fas fa-credit-card"></i>
+                    Proceder al Pago
+                </button>
+                <button class="btn-continue" onclick="toggleCart()">
+                    Seguir Comprando
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- App JS (helpers like formatCOP) -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/product_detail.js') }}"></script>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #ff6b35; color: white;">
+                    <h5 class="modal-title" id="exampleModalLabel">¿Cerrar Sesión?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">¿Estás seguro de que quieres cerrar tu sesión? Perderás cualquier información no guardada.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                    <a class="btn text-white" href="{{ url_for('auth.logout') }}" style="background-color: #ff6b35;">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

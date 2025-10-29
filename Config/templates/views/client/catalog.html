@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - FerreJunior</title>
+    
+    <!-- CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/product-placeholders.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/catalog.css') }}" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+    <div class="header-content">
+        <a href="{{ url_for('client.client_dashboard') }}" class="logo">
+            <i class="fas fa-tools"></i>
+            FerreJunior
+        </a>
+        <div class="header-icons">
+            <div class="user-info" onclick="toggleCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Carrito</span>
+                <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+            </div>
+            <div class="user-info dropdown">
+                <a href="#" class="user-dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user"></i>
+                    <span>Juan Pérez</span>
+                    <i class="fas fa-chevron-down ml-1" style="font-size: 10px;"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+                    <a class="dropdown-item" href="{{ url_for('main.profile') }}">
+                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Mi Perfil
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-history fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Mis Pedidos
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Configuración
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+            <a href="{{ url_for('client.client_dashboard') }}" class="home-btn">
+                <i class="fas fa-home"></i> Inicio
+            </a>
+             </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar Filters -->
+        <aside class="sidebar">
+            <h3>Filtros</h3>
+            
+            <!-- Categorías -->
+            <div class="filter-section">
+                <h4>Categorías</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="herramientas-manuales">
+                        <label for="herramientas-manuales">Herramientas Manuales</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="herramientas-electricas">
+                        <label for="herramientas-electricas">Herramientas Eléctricas</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tornilleria">
+                        <label for="tornilleria">Tornillería</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="pinturas">
+                        <label for="pinturas">Pinturas</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="plomeria">
+                        <label for="plomeria">Plomería</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="electricidad">
+                        <label for="electricidad">Electricidad</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Precio -->
+            <div class="filter-section">
+                <h4>Precio</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-0-50">
+                        <label for="price-0-50">Menos de $50</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-50-100">
+                        <label for="price-50-100">$50 - $100</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-100-200">
+                        <label for="price-100-200">$100 - $200</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" name="price" id="price-200-plus">
+                        <label for="price-200-plus">Más de $200</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marca -->
+            <div class="filter-section">
+                <h4>Marca</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="dewalt">
+                        <label for="dewalt">DeWalt</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="black-decker">
+                        <label for="black-decker">Black & Decker</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="stanley">
+                        <label for="stanley">Stanley</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bosch">
+                        <label for="bosch">Bosch</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="apply-filters-btn" onclick="applyFilters()">
+                Aplicar Filtros
+            </button>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- Search and Sort Bar -->
+            <div class="search-sort-bar">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Buscar productos..." id="searchInput">
+                </div>
+                <select class="sort-select" id="sortSelect">
+                    <option value="">Ordenar por</option>
+                    <option value="name-asc">Nombre A-Z</option>
+                    <option value="name-desc">Nombre Z-A</option>
+                    <option value="price-asc">Precio menor a mayor</option>
+                    <option value="price-desc">Precio mayor a menor</option>
+                    <option value="newest">Más recientes</option>
+                </select>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Fila 1 -->
+                <div class="product-card" onclick="goToProduct(1)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Atornillador 12V</h3>
+                        <p class="product-description">PowerTech Pro - Motor sin escobillas</p>
+                        <div class="product-footer">
+                            <span class="product-price">$60.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('atornillador-12v', 'Atornillador 12V', 60000, 'ATR001')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(2)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Taladro Percutor 18V</h3>
+                        <p class="product-description">ProDrill - Función percutor incluida</p>
+                        <div class="product-footer">
+                            <span class="product-price">$95.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('taladro-percutor', 'Taladro Percutor 18V', 95000, 'TAL001')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(3)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Set de Brocas 20 pzs</h3>
+                        <p class="product-description">DrillMaster - Acero HSS con estuche</p>
+                        <div class="product-footer">
+                            <span class="product-price">$24.999</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('set-brocas', 'Set de Brocas 20 pzs', 24999, 'BRC001')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 2 -->
+                <div class="product-card" onclick="goToProduct(4)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Caja de Herramientas</h3>
+                        <p class="product-description">ToolBox Pro - Múltiples compartimentos</p>
+                        <div class="product-footer">
+                            <span class="product-price">$35.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('caja-herramientas', 'Caja de Herramientas', 35000, 'CAJ001')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(5)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Gafas de Seguridad</h3>
+                        <p class="product-description">SafeVision - Protección UV 400</p>
+                        <div class="product-footer">
+                            <span class="product-price">$12.500</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('gafas-seguridad', 'Gafas de Seguridad', 12500, 'GAF001')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" onclick="goToProduct(1)">
+                    <div class="product-image-container">
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tools"></i>
+                            <div class="no-image-text">Sin imagen</div>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Atornillador 12V</h3>
+                        <p class="product-description">PowerTech Pro - En oferta especial</p>
+                        <div class="product-footer">
+                            <span class="product-price">$60.000</span>
+                            <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('atornillador-12v-2', 'Atornillador 12V (Oferta)', 60000, 'ATR002')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="pagination">
+                <button class="pagination-btn prev" onclick="changePage('prev')">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="pagination-btn active" onclick="changePage(1)">1</button>
+                <button class="pagination-btn" onclick="changePage(2)">2</button>
+                <button class="pagination-btn" onclick="changePage(3)">3</button>
+                <button class="pagination-btn next" onclick="changePage('next')">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </nav>
+        </main>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-cart"></i> Mi Carrito</h3>
+            <button class="close-btn" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="cart-content">
+            <div id="cartItems"></div>
+        </div>
+        
+        <div class="cart-footer">
+            <div class="cart-totals">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">$0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Envío:</span>
+                    <span id="shipping">$0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Impuestos:</span>
+                    <span id="taxes">$0.00</span>
+                </div>
+                <div class="total-row total">
+                    <span>Total:</span>
+                    <span id="total">$0.00</span>
+                </div>
+            </div>
+            
+            <button class="checkout-btn" onclick="window.location.href='{{ url_for('client.checkout') }}'">
+                <i class="fas fa-credit-card"></i>
+                Proceder al Pago
+            </button>
+        </div>
+    </div>
+
+    <!-- User Menu Modal -->
+    <div id="userMenuModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close" onclick="document.getElementById('userMenuModal').style.display='none'">&times;</span>
+            <h3 style="text-align: center; margin-bottom: 20px; color: #ff6b35;">Menú de Usuario</h3>
+            <div class="user-menu-options">
+                <div class="user-menu-item" onclick="window.location.href='{{ url_for('client.client_dashboard') }}'">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Mi Dashboard</span>
+                </div>
+                <div class="user-menu-item" onclick="window.location.href='{{ url_for('client.client_profile') }}'">
+                    <i class="fas fa-user"></i>
+                    <span>Mi Perfil</span>
+                </div>
+                <div class="user-menu-item" onclick="window.location.href='{{ url_for('client.client_dashboard') }}#orders'">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Mis Pedidos</span>
+                </div>
+                <div class="user-menu-item" onclick="window.location.href='{{ url_for('client.client_dashboard') }}#favorites'">
+                    <i class="fas fa-heart"></i>
+                    <span>Favoritos</span>
+                </div>
+                <div class="user-menu-item" onclick="window.location.href='{{ url_for('client.client_dashboard') }}#settings'">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </div>
+                <div class="user-menu-item logout" onclick="document.getElementById('userMenuModal').style.display='none'; document.getElementById('logoutModal').style.display='block';">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/catalog.js') }}"></script>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #ff6b35; color: white;">
+                    <h5 class="modal-title" id="exampleModalLabel">¿Cerrar Sesión?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">¿Estás seguro de que quieres cerrar tu sesión? Perderás cualquier información no guardada.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                    <a class="btn text-white" href="{{ url_for('auth.logout') }}" style="background-color: #ff6b35;">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App JS (helpers like formatCOP) -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
