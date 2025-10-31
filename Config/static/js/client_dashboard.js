@@ -96,7 +96,7 @@ function updateRecentOrders(orders) {
             <div style="text-align: center; padding: 40px; color: #64748b;">
                 <i class="fas fa-shopping-cart fa-3x" style="margin-bottom: 16px; opacity: 0.5;"></i>
                 <p>Aún no has realizado ningún pedido</p>
-                <a href="{{ url_for('client.catalog') }}" style="color: #ff6b35; text-decoration: none; font-weight: 600;">
+                <a href="/client/catalog" style="color: #ff6b35; text-decoration: none; font-weight: 600;">
                     ¡Empieza a comprar ahora!
                 </a>
             </div>
@@ -130,7 +130,7 @@ function updateRecentOrders(orders) {
         </h3>
         ${ordersHtml}
         <div style="text-align: center; margin-top: 20px;">
-            <a href="{{ url_for('client.client_orders') }}" class="btn-action btn-primary" style="display: inline-flex;">
+            <a href="/client/orders" class="btn-action btn-primary" style="display: inline-flex;">
                 <i class="fas fa-list"></i>
                 Ver Todos los Pedidos
             </a>

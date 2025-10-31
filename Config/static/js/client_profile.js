@@ -443,7 +443,9 @@ document.getElementById('profileForm').addEventListener('submit', async function
 });
 
 // Password form submission
-document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+const passwordForm = document.getElementById('passwordForm');
+if (passwordForm) {
+    passwordForm.addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const currentPassword = this.querySelector('#current_password').value;
@@ -502,7 +504,8 @@ document.getElementById('passwordForm').addEventListener('submit', async functio
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
-});
+    });
+}
 
 // Close user dropdown when clicking outside
 window.onclick = function(event) {

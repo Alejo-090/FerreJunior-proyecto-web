@@ -85,7 +85,7 @@
                         <div class="item-details">
                             <h3 class="item-name">{{ item.name }}</h3>
                             <p class="item-model">{{ item.model }}</p>
-                            <p class="item-price">{{ item.price | cop }}</p>
+                            <p class="item-price" data-unit-price="{{ item.price }}">{{ item.price | cop }}</p>
                         </div>
                         <div class="quantity-controls">
                             <button class="quantity-btn" onclick="updateQuantity({{ item.id }}, -1)">
@@ -123,19 +123,19 @@
                 <div class="summary-details">
                     <div class="summary-row">
                         <span>Subtotal</span>
-                        <span class="price">{{ subtotal | cop }}</span>
+                        <span class="price" id="checkout-subtotal">{{ subtotal | cop }}</span>
                     </div>
                     <div class="summary-row">
                         <span>Envío</span>
-                        <span class="price">{{ shipping | cop }}</span>
+                        <span class="price" id="checkout-shipping">{{ shipping | cop }}</span>
                     </div>
                     <div class="summary-row">
                         <span>IVA (19%)</span>
-                        <span class="price">{{ tax | cop }}</span>
+                        <span class="price" id="checkout-tax">{{ tax | cop }}</span>
                     </div>
                     <div class="summary-row total">
                         <span>Total</span>
-                        <span class="price">{{ total | cop }}</span>
+                        <span class="price" id="checkout-total">{{ total | cop }}</span>
                     </div>
                 </div>
 

@@ -219,8 +219,22 @@ async function addToCart(productId) {
         const payload = await resp.json();
         if (payload && payload.success) {
             showNotification('Producto agregado al carrito', 'success');
-            // Actualizar badge y carrito
-            await refreshCartBadgeLocal();
+            
+            // Si el carrito está abierto, actualizar su contenido y totales automáticamente
+            const sidebar = document.getElementById('cartSidebar');
+            if (sidebar && sidebar.classList.contains('open')) {
+                // Recargar datos del servidor primero
+                await fetchCartFromServer();
+                // Luego actualizar la vista completa
+                renderCartLocal();
+                // Llamar explícitamente a updateTotalsLocal para asegurar actualización
+                updateTotalsLocal();
+                // Actualizar badge
+                updateCartBadgeLocal();
+            } else {
+                // Solo actualizar badge si el carrito no está abierto
+                await refreshCartBadgeLocal();
+            }
         } else {
             showNotification(payload.error || 'No se pudo agregar el producto', 'error');
         }
@@ -244,7 +258,7 @@ function changePage(page) {
 
 function openCart() {
     // Redirigir al dashboard con el carrito abierto
-    window.location.href = "{{ url_for('client.client_dashboard') }}#cart";
+    window.location.href = "/client#cart";
 }
 
 function openUserMenu() {
@@ -255,7 +269,7 @@ function openUserMenu() {
 
 function goToProduct(productId) {
     // Redirigir a la página de detalle del producto
-    window.location.href = "{{ url_for('client.product_detail', product_id=0) }}".replace('0', productId);
+    window.location.href = `/product/${productId}`;
 }
 
 // Estado del carrito (se obtiene desde el servidor cuando se abre)
@@ -270,10 +284,13 @@ async function fetchCartFromServer() {
                 id: it.id,
                 product_id: it.product_id,
                 name: it.name,
-                price: it.price,
-                quantity: it.quantity,
+                price: Number(it.price) || Number(it.unit_price) || 0,
+                quantity: Number(it.quantity) || 0,
+                code: it.product_id || `PRD${it.id}`,
                 image: it.product && it.product.image ? it.product.image : `https://via.placeholder.com/64x64/ff6b35/white?text=${encodeURIComponent(it.name)}`
             }));
+        } else {
+            cart = [];
         }
     } catch (e) {
         console.error('Error cargando carrito:', e);
@@ -320,23 +337,93 @@ function addToCartLocal(id, name, price, code) {
     showNotification(`${name} agregado al carrito`);
 }
 
-function updateQuantityLocal(id, change) {
-    const item = cart.find(item => item.id === id);
-    if (item) {
-        item.quantity += change;
-        if (item.quantity <= 0) {
-            removeFromCartLocal(id);
-        } else {
-            renderCartLocal();
-            updateCartBadgeLocal();
+async function updateQuantityLocal(id, change) {
+    const item = cart.find(item => item.id == id);
+    if (!item) {
+        return;
+    }
+    const newQuantity = item.quantity + change;
+
+    if (newQuantity < 0) {
+        return;
+    }
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        // Si la cantidad llega a 0, eliminar el item
+        if (newQuantity === 0) {
+            const resp = await fetch(`/client/cart/item/${id}`, {
+                method: 'DELETE',
+                credentials: 'same-origin',
+                headers: { 'X-CSRFToken': csrfToken }
+            });
+            const payload = await resp.json();
+            if (payload && payload.success) {
+                // Recargar datos del servidor
+                await fetchCartFromServer();
+                // Actualizar vista y totales
+                renderCartLocal();
+                // Llamar explícitamente a updateTotalsLocal
+                updateTotalsLocal();
+                updateCartBadgeLocal();
+                showNotification('Producto eliminado del carrito', 'info');
+            } else {
+                showNotification(payload.error || 'No se pudo eliminar el producto', 'error');
+            }
+            return;
         }
+        
+        // Actualizar cantidad
+        const resp = await fetch(`/client/cart/item/${id}`, {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ quantity: newQuantity })
+        });
+        const payload = await resp.json();
+        if (payload && payload.success) {
+            // Recargar datos del servidor primero
+            await fetchCartFromServer();
+            // Forzar actualización de totales recalculando desde cero
+            renderCartLocal();
+            // Llamar explícitamente a updateTotalsLocal para asegurar actualización
+            updateTotalsLocal();
+            updateCartBadgeLocal();
+        } else {
+            showNotification(payload.error || 'No se pudo actualizar el carrito', 'error');
+        }
+    } catch (e) {
+        console.error('Error actualizando cantidad del carrito:', e);
+        showNotification('Error al conectar con el servidor', 'error');
     }
 }
 
-function removeFromCartLocal(id) {
-    cart = cart.filter(item => item.id !== id);
-    renderCartLocal();
-    updateCartBadgeLocal();
+async function removeFromCartLocal(id) {
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const resp = await fetch(`/client/cart/item/${id}`, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        const payload = await resp.json();
+        if (payload && payload.success) {
+            // Recargar datos del servidor
+            await fetchCartFromServer();
+            // Actualizar vista y totales
+            renderCartLocal();
+            // Llamar explícitamente a updateTotalsLocal
+            updateTotalsLocal();
+            updateCartBadgeLocal();
+            showNotification('Producto eliminado del carrito', 'info');
+        } else {
+            showNotification(payload.error || 'No se pudo eliminar el producto', 'error');
+        }
+    } catch (e) {
+        console.error('Error eliminando producto del carrito:', e);
+        showNotification('Error al conectar con el servidor', 'error');
+    }
 }
 
 function renderCartLocal() {
@@ -358,11 +445,11 @@ function renderCartLocal() {
                     <div class="cart-item-code">Código: ${item.code}</div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="quantity-controls">
-                            <button class="quantity-btn minus" onclick="updateQuantityLocal('${item.id}', -1)">
+                            <button class="quantity-btn minus" onclick="updateQuantityLocal(${item.id}, -1)">
                                 <i class="fas fa-minus"></i>
                             </button>
                             <span style="font-weight: 600; margin: 0 8px;">${item.quantity}</span>
-                            <button class="quantity-btn plus" onclick="updateQuantityLocal('${item.id}', 1)">
+                            <button class="quantity-btn plus" onclick="updateQuantityLocal(${item.id}, 1)">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -377,15 +464,67 @@ function renderCartLocal() {
 }
 
 function updateTotalsLocal() {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = cart.length > 0 ? 8.99 : 0;
-    const taxes = subtotal * 0.08; // 8% tax
+    console.log('updateTotalsLocal llamado, cart:', cart);
+    
+    // Asegurar que cart es un array válido
+    if (!Array.isArray(cart) || cart.length === 0) {
+        console.log('Carrito vacío, estableciendo totales a 0');
+        const elSubtotal = document.getElementById('subtotal');
+        const elShipping = document.getElementById('shipping');
+        const elTaxes = document.getElementById('taxes');
+        const elTotal = document.getElementById('total');
+        if (elSubtotal) elSubtotal.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
+        if (elShipping) elShipping.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
+        if (elTaxes) elTaxes.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
+        if (elTotal) elTotal.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
+        return;
+    }
+    
+    // Calcular subtotal sumando precio * cantidad de cada item
+    const subtotal = cart.reduce((sum, item) => {
+        const price = Number(item.price) || 0;
+        const quantity = Number(item.quantity) || 0;
+        const itemTotal = price * quantity;
+        console.log(`Item: ${item.name}, Precio: ${price}, Cantidad: ${quantity}, Total: ${itemTotal}`);
+        return sum + itemTotal;
+    }, 0);
+    
+    console.log('Subtotal calculado:', subtotal);
+    
+    // Reglas unificadas con checkout: envío $15.000 si subtotal < $200.000; IVA 19%
+    const shipping = subtotal > 0 && subtotal < 200000 ? 15000 : 0;
+    const taxes = Math.round(subtotal * 0.19);
     const total = subtotal + shipping + taxes;
+    
+    console.log('Totales calculados - Subtotal:', subtotal, 'Envío:', shipping, 'IVA:', taxes, 'Total:', total);
 
-    document.getElementById('subtotal').textContent = typeof formatCOP === 'function' ? formatCOP(subtotal) : '$' + (subtotal || 0).toLocaleString();
-    document.getElementById('shipping').textContent = typeof formatCOP === 'function' ? formatCOP(shipping) : '$' + (shipping || 0).toLocaleString();
-    document.getElementById('taxes').textContent = typeof formatCOP === 'function' ? formatCOP(taxes) : '$' + (taxes || 0).toLocaleString();
-    document.getElementById('total').textContent = typeof formatCOP === 'function' ? formatCOP(total) : '$' + (total || 0).toLocaleString();
+    // Actualizar elementos del DOM
+    const elSubtotal = document.getElementById('subtotal');
+    const elShipping = document.getElementById('shipping');
+    const elTaxes = document.getElementById('taxes');
+    const elTotal = document.getElementById('total');
+    
+    console.log('Elementos DOM encontrados:', {
+        subtotal: !!elSubtotal,
+        shipping: !!elShipping,
+        taxes: !!elTaxes,
+        total: !!elTotal
+    });
+    
+    if (elSubtotal) {
+        elSubtotal.textContent = typeof formatCOP === 'function' ? formatCOP(subtotal) : '$' + (subtotal || 0).toLocaleString();
+    }
+    if (elShipping) {
+        elShipping.textContent = typeof formatCOP === 'function' ? formatCOP(shipping) : '$' + (shipping || 0).toLocaleString();
+    }
+    if (elTaxes) {
+        elTaxes.textContent = typeof formatCOP === 'function' ? formatCOP(taxes) : '$' + (taxes || 0).toLocaleString();
+    }
+    if (elTotal) {
+        elTotal.textContent = typeof formatCOP === 'function' ? formatCOP(total) : '$' + (total || 0).toLocaleString();
+    }
+    
+    console.log('Totales actualizados en DOM');
 }
 
 function updateCartBadgeLocal() {

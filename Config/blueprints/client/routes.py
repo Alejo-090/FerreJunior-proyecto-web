@@ -8,6 +8,7 @@ from Config.models.order_item import OrderItem
 from Config.models.address import Address
 from Config.models.product import Product
 from Config.models.cart import Cart, CartItem
+import random
 from Config.db import db
 from datetime import datetime, timedelta
 from sqlalchemy.orm import joinedload
@@ -42,13 +43,53 @@ def client_dashboard_data():
         if total_orders > 0:
             satisfaction = int((completed_orders / total_orders) * 100)
 
-        # Pedidos recientes (últimos 5)
-        recent_orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).limit(5).all()
-        recent_orders_data = [order.to_dict() for order in recent_orders]
+        # Pedidos recientes (últimos 5) - cargar items explícitamente
+        recent_orders = Order.query.filter_by(user_id=current_user.id).options(
+            joinedload(Order.items)
+        ).order_by(Order.created_at.desc()).limit(5).all()
+        recent_orders_data = []
+        for order in recent_orders:
+            try:
+                recent_orders_data.append(order.to_dict())
+            except Exception as e:
+                print(f"Error serializando orden {order.id}: {e}")
+                # Crear dict básico sin items si hay error
+                recent_orders_data.append({
+                    'id': order.id,
+                    'order_number': order.order_number,
+                    'status': order.status,
+                    'status_display': 'Pendiente' if order.status == 'pending' else order.status.title(),
+                    'total_amount': float(order.total_amount),
+                    'total_amount_cop': int(round(order.total_amount)),
+                    'created_at': order.created_at.isoformat() if order.created_at else None,
+                    'items': [],
+                    'items_count': 0
+                })
 
-        # Próximos pedidos en proceso
-        pending_orders = Order.query.filter_by(user_id=current_user.id).filter(Order.status.in_(['pending', 'processing', 'shipped'])).order_by(Order.created_at.desc()).all()
-        pending_orders_data = [order.to_dict() for order in pending_orders]
+        # Próximos pedidos en proceso - cargar items explícitamente
+        pending_orders = Order.query.filter_by(user_id=current_user.id).filter(
+            Order.status.in_(['pending', 'processing', 'shipped'])
+        ).options(
+            joinedload(Order.items)
+        ).order_by(Order.created_at.desc()).all()
+        pending_orders_data = []
+        for order in pending_orders:
+            try:
+                pending_orders_data.append(order.to_dict())
+            except Exception as e:
+                print(f"Error serializando orden {order.id}: {e}")
+                # Crear dict básico sin items si hay error
+                pending_orders_data.append({
+                    'id': order.id,
+                    'order_number': order.order_number,
+                    'status': order.status,
+                    'status_display': 'Pendiente' if order.status == 'pending' else order.status.title(),
+                    'total_amount': float(order.total_amount),
+                    'total_amount_cop': int(round(order.total_amount)),
+                    'created_at': order.created_at.isoformat() if order.created_at else None,
+                    'items': [],
+                    'items_count': 0
+                })
 
         return jsonify({
             'stats': {
@@ -92,7 +133,41 @@ def client_orders_data():
             query = query.filter_by(status=status_filter)
 
         orders = query.order_by(Order.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
-        orders_data = [order.to_dict() for order in orders.items]
+        
+        # Serializar órdenes con manejo de errores
+        orders_data = []
+        for order in orders.items:
+            try:
+                orders_data.append(order.to_dict())
+            except Exception as e:
+                print(f"Error serializando orden {order.id}: {e}")
+                import traceback
+                traceback.print_exc()
+                # Crear dict básico sin items si hay error
+                orders_data.append({
+                    'id': order.id,
+                    'user_id': order.user_id,
+                    'order_number': order.order_number,
+                    'status': order.status,
+                    'status_display': 'Pendiente' if order.status == 'pending' else order.status.title(),
+                    'total_amount': float(order.total_amount),
+                    'total_amount_cop': int(round(order.total_amount)),
+                    'subtotal': 0,
+                    'subtotal_cop': 0,
+                    'shipping_cost': 0,
+                    'shipping_cost_cop': 0,
+                    'tax_amount': 0,
+                    'tax_amount_cop': 0,
+                    'shipping_address': order.shipping_address,
+                    'payment_method': order.payment_method,
+                    'notes': order.notes or '',
+                    'created_at': order.created_at.isoformat() if order.created_at else None,
+                    'updated_at': order.updated_at.isoformat() if order.updated_at else None,
+                    'user_name': current_user.name if current_user else None,
+                    'user_email': current_user.email if current_user else None,
+                    'items_count': 0,
+                    'items': []
+                })
 
         return jsonify({
             'orders': orders_data,
@@ -622,6 +697,143 @@ def delete_client_address(address_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error en delete_client_address: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@client_bp.route("/client/checkout/create-order", methods=["POST"])
+@client_access
+def create_order():
+    """Crear un pedido desde el carrito"""
+    try:
+        data = request.get_json() or {}
+        
+        # Obtener el carrito del usuario
+        cart = Cart.query.filter_by(user_id=current_user.id).first()
+        if not cart or not cart.items:
+            return jsonify({'error': 'El carrito está vacío', 'success': False}), 400
+        
+        # Calcular totales
+        subtotal = sum(float(item.unit_price or item.product.price) * item.quantity for item in cart.items)
+        shipping = 15000 if subtotal < 200000 else 0
+        tax = int(subtotal * 0.19)  # IVA 19%
+        total = subtotal + shipping + tax
+        
+        # Obtener dirección de envío (usar la dirección por defecto o la primera disponible)
+        shipping_address = None
+        address = Address.query.filter_by(user_id=current_user.id, is_default=True).first()
+        if not address:
+            address = Address.query.filter_by(user_id=current_user.id).first()
+        
+        if address:
+            shipping_address = address.get_full_address()
+        
+        # Generar número de orden único (ORD + timestamp + random)
+        timestamp = datetime.utcnow().strftime("%Y%m%d")
+        random_suffix = random.randint(1000, 9999)
+        order_number = f"ORD{timestamp}{random_suffix}"
+        
+        # Verificar que el número de orden sea único
+        while Order.query.filter_by(order_number=order_number).first():
+            random_suffix = random.randint(1000, 9999)
+            order_number = f"ORD{timestamp}{random_suffix}"
+        
+        # Crear la orden
+        order = Order(
+            user_id=current_user.id,
+            order_number=order_number,
+            status='pending',
+            total_amount=float(total),
+            shipping_address=shipping_address,
+            payment_method=data.get('payment_method', 'Tarjeta de crédito'),
+            notes=data.get('notes', '')
+        )
+        db.session.add(order)
+        db.session.flush()  # Para obtener el ID de la orden
+        
+        # Crear los items de la orden desde el carrito
+        order_items_list = []
+        order_items_data = []
+        for cart_item in cart.items:
+            product = cart_item.product
+            if not product:
+                continue
+            
+            unit_price = float(cart_item.unit_price) if cart_item.unit_price is not None else float(product.price)
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=product.id,
+                quantity=cart_item.quantity,
+                unit_price=unit_price,
+                total_price=unit_price * cart_item.quantity
+            )
+            db.session.add(order_item)
+            order_items_list.append(order_item)
+            
+            # Crear dict del item con el producto ya disponible
+            order_items_data.append({
+                'id': None,  # Se asignará después del commit
+                'order_id': order.id,
+                'product_id': product.id,
+                'product_name': product.name,
+                'product_image': product.image,
+                'quantity': cart_item.quantity,
+                'price': unit_price,
+                'unit_price': unit_price,
+                'unit_price_cop': int(round(unit_price)),
+                'total_price': unit_price * cart_item.quantity,
+                'total_price_cop': int(round(unit_price * cart_item.quantity)),
+                'created_at': None
+            })
+        
+        # Limpiar el carrito (eliminar todos los items)
+        CartItem.query.filter_by(cart_id=cart.id).delete()
+        
+        # Commit de todos los cambios
+        db.session.commit()
+        
+        # Refrescar la orden y recargar los items desde la base de datos
+        db.session.refresh(order)
+        # Recargar la orden con sus items
+        order = Order.query.options(joinedload(Order.items)).filter_by(id=order.id).first()
+        
+        # Construir el dict manualmente para evitar problemas con relaciones lazy
+        order_dict = {
+            'id': order.id,
+            'user_id': order.user_id,
+            'order_number': order.order_number,
+            'status': order.status,
+            'status_display': 'Pendiente',
+            'total_amount': float(order.total_amount),
+            'total_amount_cop': int(round(order.total_amount)),
+            'subtotal': subtotal,
+            'subtotal_cop': int(round(subtotal)),
+            'shipping_cost': shipping,
+            'shipping_cost_cop': shipping,
+            'tax_amount': tax,
+            'tax_amount_cop': tax,
+            'shipping_address': shipping_address,
+            'payment_method': order.payment_method,
+            'notes': order.notes or '',
+            'created_at': order.created_at.isoformat() if order.created_at else None,
+            'updated_at': order.updated_at.isoformat() if order.updated_at else None,
+            'user_name': current_user.name if current_user else None,
+            'user_email': current_user.email if current_user else None,
+            'items_count': len(order_items_list),
+            'items': order_items_data
+        }
+        
+        # Retornar la orden creada
+        return jsonify({
+            'order': order_dict,
+            'order_number': order_number,
+            'message': 'Pedido creado exitosamente',
+            'success': True
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en create_order: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e), 'success': False}), 500
 
 @client_bp.route("/client/profile")
