@@ -9,6 +9,9 @@ class Order(db.Model):
     order_number = db.Column(db.String(20), unique=True, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, processing, shipped, delivered, cancelled
     total_amount = db.Column(db.Float, nullable=False)
+    subtotal = db.Column(db.Float, default=0)
+    shipping_cost = db.Column(db.Float, default=0)
+    tax_amount = db.Column(db.Float, default=0)
     shipping_address = db.Column(db.Text)
     payment_method = db.Column(db.String(50))
     notes = db.Column(db.Text)
@@ -39,10 +42,11 @@ class Order(db.Model):
         if hasattr(self, 'items') and self.items:
             items_data = [item.to_dict() for item in self.items]
         
-        # Calculate totals
-        subtotal = sum(item.total_price for item in self.items) if hasattr(self, 'items') and self.items else 0
-        shipping_cost = 15000 if subtotal < 200000 else 0  # Example shipping logic (already integer COP)
-        tax_amount = int(subtotal * 0.19)  # 19% IVA (integer)
+        # Use stored values from database, fallback to calculation if not set
+        subtotal = self.subtotal if self.subtotal else (sum(item.total_price for item in self.items) if hasattr(self, 'items') and self.items else 0)
+        shipping_cost = self.shipping_cost if self.shipping_cost is not None else (15000 if subtotal < 200000 else 0)
+        tax_amount = self.tax_amount if self.tax_amount else int(subtotal * 0.19)
+        
         # Canonical integer representations in COP (pesos)
         subtotal_cop = int(round(subtotal)) if subtotal is not None else 0
         shipping_cost_cop = int(round(shipping_cost)) if shipping_cost is not None else 0

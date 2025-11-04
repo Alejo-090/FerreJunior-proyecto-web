@@ -25,7 +25,7 @@ class OrderItem(db.Model):
             'order_id': self.order_id,
             'product_id': self.product_id,
             'product_name': self.product.name if self.product else 'Producto no encontrado',
-            'product_image': self.product.image if self.product else None,
+            'product_image': getattr(self.product, 'image', None) if self.product else None,
             'quantity': self.quantity,
             'price': self.unit_price,  # Changed from unit_price to price for frontend compatibility
             'unit_price': self.unit_price,

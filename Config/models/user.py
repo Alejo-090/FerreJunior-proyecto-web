@@ -10,6 +10,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100))
     name = db.Column(db.String(100))
     role = db.Column(db.String(50), default='cliente')  # 'admin', 'empleado', 'cliente'
+    phone = db.Column(db.String(20))
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
@@ -31,3 +32,15 @@ class User(UserMixin, db.Model):
     @staticmethod
     def get_by_email(email):
         return User.query.filter_by(email=email).first()
+    
+    def to_dict(self):
+        """Convertir usuario a diccionario"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'role': self.role,
+            'phone': self.phone,
+            'is_active': self.active,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }

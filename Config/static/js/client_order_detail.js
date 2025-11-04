@@ -1,9 +1,29 @@
 let orderData = null;
 
+// Formatear moneda en pesos colombianos
+function formatCOP(amount) {
+    // Convertir a entero para eliminar decimales
+    const intAmount = Math.round(amount || 0);
+    // Formatear con separadores de miles
+    return '$' + intAmount.toLocaleString('es-CO');
+}
+
 // User menu toggle
 function toggleUserMenu() {
     const menu = document.getElementById('userMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    const button = document.querySelector('.user-menu-btn');
+    
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        // Calcular posición del botón
+        const rect = button.getBoundingClientRect();
+        
+        // Posicionar el menú justo debajo del botón
+        menu.style.top = (rect.bottom + 5) + 'px';
+        menu.style.left = (rect.right - 180) + 'px'; // 180px es el min-width del menú
+        menu.style.display = 'block';
+    } else {
+        menu.style.display = 'none';
+    }
 }
 
 // Load order details
@@ -55,7 +75,7 @@ function renderOrderDetail(order, items) {
                 <div class="item-sku">SKU: ${item.id}</div>
                 <div class="item-price-info">
                     <div class="item-quantity">Cantidad: ${item.quantity}</div>
-                    <div class="item-price">${typeof formatCOP === 'function' ? formatCOP(item.unit_price) : '$' + (item.unit_price || 0).toLocaleString()}</div>
+                    <div class="item-price">${formatCOP(item.unit_price_cop || item.unit_price)}</div>
                 </div>
             </div>
         </div>
@@ -84,19 +104,19 @@ function renderOrderDetail(order, items) {
             <div class="order-summary">
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span>${typeof formatCOP === 'function' ? formatCOP(order.subtotal || 0) : '$' + (order.subtotal || 0).toLocaleString()}</span>
+                    <span>${formatCOP(order.subtotal_cop || order.subtotal)}</span>
                 </div>
                 <div class="summary-row">
                     <span>Envío:</span>
-                    <span>${typeof formatCOP === 'function' ? formatCOP(order.shipping_cost || 0) : '$' + (order.shipping_cost || 0).toLocaleString()}</span>
+                    <span>${formatCOP(order.shipping_cost_cop || order.shipping_cost)}</span>
                 </div>
                 <div class="summary-row">
                     <span>Impuestos:</span>
-                    <span>${typeof formatCOP === 'function' ? formatCOP(order.tax_amount || 0) : '$' + (order.tax_amount || 0).toLocaleString()}</span>
+                    <span>${formatCOP(order.tax_amount_cop || order.tax_amount)}</span>
                 </div>
                 <div class="summary-total">
                     <span>Total:</span>
-                    <span>${typeof formatCOP === 'function' ? formatCOP(order.total_amount) : '$' + (order.total_amount || 0).toLocaleString()}</span>
+                    <span>${formatCOP(order.total_amount_cop || order.total_amount)}</span>
                 </div>
             </div>
 
@@ -123,10 +143,10 @@ function renderOrderDetail(order, items) {
                         <i class="fas fa-undo"></i> Solicitar Devolución
                     </button>
                 ` : ''}
-                ${order.status === 'shipped' ? `
-                    <button class="btn-action btn-primary" onclick="trackOrder(${order.id})">
-                        <i class="fas fa-truck"></i> Rastrear Pedido
-                    </button>
+                ${(order.status === 'shipped' || order.status === 'in_transit') ? `
+                    <a href="/client/order/${order.id}/tracking" class="btn-action btn-primary">
+                        <i class="fas fa-map-marker-alt"></i> Ver Rastreo en Tiempo Real
+                    </a>
                 ` : ''}
             </div>
         </div>

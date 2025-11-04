@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Panel de Administración - FerreJunior</title>
     
-    <link href="{{ url_for('static', filename='css/admin_dashboard.css') }}" rel="stylesheet">
-    
-    <!-- CSS -->
+    <!-- CSS de terceros primero -->
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado de FerreJunior al final para que tenga prioridad -->
+    <link href="{{ url_for('static', filename='css/admin_dashboard.css') }}?v=6" rel="stylesheet">
 </head>
 
 <body>
@@ -47,21 +52,21 @@
                     <a href="#users" class="nav-link" onclick="showSection('users')">
                         <i class="fas fa-users"></i>
                         <span>Usuarios</span>
-                        <span class="badge">156</span>
+                        <span class="badge">{{ user_count }}</span>
                     </a>
                 </div>
                 <div class="nav-item">
                     <a href="#products" class="nav-link" onclick="showSection('products')">
                         <i class="fas fa-box"></i>
                         <span>Productos</span>
-                        <span class="badge">842</span>
+                        <span class="badge">{{ product_count }}</span>
                     </a>
                 </div>
                 <div class="nav-item">
                     <a href="#orders" class="nav-link" onclick="showSection('orders')">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Pedidos</span>
-                        <span class="badge">23</span>
+                        <span class="badge">{{ order_count }}</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -78,6 +83,13 @@
                     <a href="#reports" class="nav-link" onclick="showSection('reports')">
                         <i class="fas fa-chart-line"></i>
                         <span>Reportes</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#tickets" class="nav-link" onclick="showSection('tickets')">
+                        <i class="fas fa-headset"></i>
+                        <span>Atención al Cliente</span>
+                        <span class="badge" id="tickets-badge">0</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -153,7 +165,7 @@
                     <div class="stat-card">
                         <div class="stat-header">
                             <div class="stat-content">
-                                <h3>156</h3>
+                                <h3>{{ user_count }}</h3>
                                 <p>Total Usuarios</p>
                                 <div class="stat-change positive">
                                     <i class="fas fa-arrow-up"></i>
@@ -169,7 +181,7 @@
                     <div class="stat-card">
                         <div class="stat-header">
                             <div class="stat-content">
-                                <h3>842</h3>
+                                <h3>{{ product_count }}</h3>
                                 <p>Productos Activos</p>
                                 <div class="stat-change positive">
                                     <i class="fas fa-arrow-up"></i>
@@ -185,8 +197,8 @@
                     <div class="stat-card">
                         <div class="stat-header">
                             <div class="stat-content">
-                                <h3>23</h3>
-                                <p>Pedidos Hoy</p>
+                                <h3>{{ order_count }}</h3>
+                                <p>Pedidos Totales</p>
                                 <div class="stat-change positive">
                                     <i class="fas fa-arrow-up"></i>
                                     +8% vs ayer
@@ -225,7 +237,7 @@
                             <h3 class="section-title">Gestión de Usuarios</h3>
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="openModal('userModal')">
+                            <button class="action-btn primary" onclick="openUserModalForNew()">
                                 <i class="fas fa-user-plus"></i>
                                 Crear Usuario
                             </button>
@@ -341,7 +353,7 @@
                         <h3 class="section-title">Acciones Disponibles</h3>
                     </div>
                     <div class="action-buttons">
-                        <button class="action-btn primary" onclick="openModal('userModal')">
+                        <button class="action-btn primary" onclick="openUserModalForNew()">
                             <i class="fas fa-user-plus"></i>
                             Crear Usuario
                         </button>
@@ -349,10 +361,13 @@
                             <i class="fas fa-download"></i>
                             Exportar Usuarios
                         </button>
-                        <button class="action-btn secondary" onclick="openModal('importModal')">
-                            <i class="fas fa-upload"></i>
-                            Importar
-                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Usuarios -->
+                <div id="users-list-content" class="mt-4">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i> Cargando usuarios...
                     </div>
                 </div>
             </div>
@@ -451,8 +466,78 @@
                     <h1 class="page-title">Analytics</h1>
                     <p class="page-subtitle">Análisis de datos y métricas</p>
                 </div>
-                <div class="action-section">
-                    <p>Sección de analytics - En desarrollo</p>
+                <div id="analytics-content">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-orders">-</h3>
+                                <p>Total Pedidos</p>
+                                <span class="stat-change positive" id="orders-change">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-revenue">-</h3>
+                                <p>Ingresos Totales</p>
+                                <span class="stat-change positive" id="revenue-change">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-customers">-</h3>
+                                <p>Clientes</p>
+                                <span class="stat-change positive" id="customers-change">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-products">-</h3>
+                                <p>Productos Activos</p>
+                                <span class="stat-change" id="products-change">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="analytics-charts">
+                        <div class="chart-container">
+                            <h3>Productos Más Vendidos</h3>
+                            <div id="top-products-list" class="top-products">
+                                <p class="loading-text">Cargando...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>Pedidos por Estado</h3>
+                            <div id="orders-by-status" class="status-chart">
+                                <p class="loading-text">Cargando...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="recent-activity">
+                        <h3>Actividad Reciente</h3>
+                        <div id="recent-orders-list" class="activity-list">
+                            <p class="loading-text">Cargando...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -552,18 +637,357 @@
                     <h1 class="page-title">Configuración</h1>
                     <p class="page-subtitle">Configurar sistema y preferencias</p>
                 </div>
-                <div class="action-section">
-                    <p>Sección de configuración - En desarrollo</p>
+                
+                <div id="settings-content">
+                    <!-- General Settings -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-cog"></i> Configuración General</h3>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="siteName">Nombre del Sitio</label>
+                                <input type="text" id="siteName" class="form-control" value="FerreJunior">
+                            </div>
+                            <div class="setting-item">
+                                <label for="siteEmail">Email de Contacto</label>
+                                <input type="email" id="siteEmail" class="form-control" value="contacto@ferrejunior.com">
+                            </div>
+                            <div class="setting-item">
+                                <label for="sitePhone">Teléfono</label>
+                                <input type="tel" id="sitePhone" class="form-control" value="+57 300 123 4567">
+                            </div>
+                            <div class="setting-item">
+                                <label for="siteAddress">Dirección</label>
+                                <input type="text" id="siteAddress" class="form-control" value="Calle 123 #45-67, Bogotá">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" onclick="saveGeneralSettings()">
+                            <i class="fas fa-save"></i> Guardar Configuración General
+                        </button>
+                    </div>
+
+                    <!-- Shipping Settings -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-truck"></i> Configuración de Envíos</h3>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="freeShippingMin">Envío Gratis Desde (COP)</label>
+                                <input type="number" id="freeShippingMin" class="form-control" value="200000">
+                                <small class="text-muted">Pedidos superiores a este monto tienen envío gratis</small>
+                            </div>
+                            <div class="setting-item">
+                                <label for="standardShippingCost">Costo Envío Estándar (COP)</label>
+                                <input type="number" id="standardShippingCost" class="form-control" value="15000">
+                            </div>
+                            <div class="setting-item">
+                                <label for="deliveryDays">Días de Entrega</label>
+                                <input type="number" id="deliveryDays" class="form-control" value="3">
+                                <small class="text-muted">Tiempo estimado de entrega en días</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" onclick="saveShippingSettings()">
+                            <i class="fas fa-save"></i> Guardar Configuración de Envíos
+                        </button>
+                    </div>
+
+                    <!-- Stock Alerts -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-box-open"></i> Alertas de Inventario</h3>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="lowStockThreshold">Umbral de Stock Bajo</label>
+                                <input type="number" id="lowStockThreshold" class="form-control" value="10">
+                                <small class="text-muted">Alerta cuando el stock sea menor o igual a este valor</small>
+                            </div>
+                            <div class="setting-item">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="emailLowStock" checked>
+                                    Enviar email cuando hay stock bajo
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" onclick="saveStockSettings()">
+                            <i class="fas fa-save"></i> Guardar Configuración de Inventario
+                        </button>
+                    </div>
+
+                    <!-- Tax Settings -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-percentage"></i> Configuración de Impuestos</h3>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="taxRate">Tasa de IVA (%)</label>
+                                <input type="number" id="taxRate" class="form-control" value="19" step="0.1">
+                                <small class="text-muted">Porcentaje de IVA aplicado a los productos</small>
+                            </div>
+                            <div class="setting-item">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="taxIncluded" checked>
+                                    Precios incluyen IVA
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" onclick="saveTaxSettings()">
+                            <i class="fas fa-save"></i> Guardar Configuración de Impuestos
+                        </button>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-bell"></i> Notificaciones</h3>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notifyNewOrder" checked>
+                                    Notificar nuevos pedidos
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notifyLowStock" checked>
+                                    Notificar stock bajo
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="notifyNewUser">
+                                    Notificar nuevos usuarios
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" onclick="saveNotificationSettings()">
+                            <i class="fas fa-save"></i> Guardar Preferencias de Notificaciones
+                        </button>
+                    </div>
+
+                    <!-- System Maintenance -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-tools"></i> Mantenimiento del Sistema</h3>
+                        <div class="maintenance-actions">
+                            <button class="btn btn-warning" onclick="clearCache()">
+                                <i class="fas fa-broom"></i> Limpiar Caché
+                            </button>
+                            <button class="btn btn-info" onclick="exportDatabase()">
+                                <i class="fas fa-database"></i> Exportar Base de Datos
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewLogs()">
+                                <i class="fas fa-file-alt"></i> Ver Logs del Sistema
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-tickets" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Atención al Cliente</h1>
+                    <p class="page-subtitle">Gestionar tickets y consultas de clientes</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-total-count">0</h3>
+                                <p>Total Tickets</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-open-count">0</h3>
+                                <p>Abiertos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff3cd; color: #f59e0b;">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-inprogress-count">0</h3>
+                                <p>En Proceso</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #3b82f6;">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-resolved-count">0</h3>
+                                <p>Resueltos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-list"></i> Tickets de Clientes</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="ticketsFilterStatus" class="form-control" style="width: 180px;" onchange="filterTickets()">
+                                <option value="">Todos los estados</option>
+                                <option value="open">Abiertos</option>
+                                <option value="in_progress">En Proceso</option>
+                                <option value="resolved">Resueltos</option>
+                                <option value="closed">Cerrados</option>
+                            </select>
+                            <select id="ticketsFilterCategory" class="form-control" style="width: 180px;" onchange="filterTickets()">
+                                <option value="">Todas las categorías</option>
+                                <option value="consulta">Consulta</option>
+                                <option value="soporte_tecnico">Soporte Técnico</option>
+                                <option value="reclamo">Reclamo</option>
+                                <option value="sugerencia">Sugerencia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="tickets-list" class="tickets-table-container">
+                        <!-- Tickets will be loaded dynamically -->
+                        <div class="loading-message">Cargando tickets...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ticket Chat Modal -->
+            <div id="ticketModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h2 id="ticketModalTitle">Ticket #</h2>
+                        <span class="modal-close" onclick="closeTicketModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="ticketModalBody">
+                        <!-- Ticket chat will be loaded here -->
+                    </div>
                 </div>
             </div>
 
             <div id="section-support" class="content-section" style="display: none;">
                 <div class="page-header">
-                    <h1 class="page-title">Soporte</h1>
-                    <p class="page-subtitle">Ayuda y documentación</p>
+                    <h1 class="page-title">Centro de Soporte</h1>
+                    <p class="page-subtitle">Recursos de ayuda y contacto</p>
                 </div>
-                <div class="action-section">
-                    <p>Sección de soporte - En desarrollo</p>
+
+                <div class="support-container">
+                    <div class="support-section">
+                        <div class="support-card">
+                            <div class="support-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-question-circle fa-3x"></i>
+                            </div>
+                            <h3>Preguntas Frecuentes</h3>
+                            <p>Encuentra respuestas rápidas a las preguntas más comunes</p>
+                            <button class="btn btn-primary" onclick="showFAQ()">
+                                <i class="fas fa-search"></i> Ver FAQs
+                            </button>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-icon" style="background: #d1fae5; color: #10b981;">
+                                <i class="fas fa-book fa-3x"></i>
+                            </div>
+                            <h3>Guías de Usuario</h3>
+                            <p>Manuales y tutoriales para usar el sistema</p>
+                            <button class="btn btn-success" onclick="showGuides()">
+                                <i class="fas fa-book-open"></i> Ver Guías
+                            </button>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-headset fa-3x"></i>
+                            </div>
+                            <h3>Contactar Soporte</h3>
+                            <p>Obtén ayuda directa de nuestro equipo</p>
+                            <button class="btn btn-warning" onclick="contactSupport()">
+                                <i class="fas fa-phone"></i> Contactar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="faq-section" id="faqContent" style="display: none; margin-top: 30px;">
+                        <h3 style="color: #ff6b35; margin-bottom: 20px;">
+                            <i class="fas fa-question-circle"></i> Preguntas Frecuentes
+                        </h3>
+                        <div class="faq-list">
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo gestiono usuarios del sistema?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    Ve a la sección de Usuarios, donde puedes crear, editar o desactivar cuentas. Puedes asignar roles (admin, empleado, cliente) y gestionar permisos.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo agrego nuevos productos?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    En la sección de Productos, haz clic en "Crear Nuevo Producto". Completa la información (nombre, SKU, precio, stock) y asigna una categoría.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo superviso los pedidos?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    La sección de Pedidos muestra todos los pedidos del sistema. Puedes filtrarlos por estado y ver detalles completos de cada uno.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo accedo a los reportes y analytics?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    En Analytics y Reportes encontrarás gráficos de ventas, productos más vendidos, tendencias y estadísticas del negocio.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo gestiono los tickets de soporte?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    En Atención al Cliente puedes ver todos los tickets, asignarlos a empleados, cambiar estados y comunicarte directamente con los clientes.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-section" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="color: #333; margin-bottom: 15px;">
+                            <i class="fas fa-info-circle"></i> Información de Contacto
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div>
+                                <strong><i class="fas fa-envelope"></i> Email:</strong>
+                                <p>soporte@ferrejunior.com</p>
+                            </div>
+                            <div>
+                                <strong><i class="fas fa-phone"></i> Teléfono:</strong>
+                                <p>+57 (604) 123-4567</p>
+                            </div>
+                            <div>
+                                <strong><i class="fas fa-clock"></i> Horario:</strong>
+                                <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -571,13 +995,62 @@
 
     <!-- Modals -->
     <div id="userModal" class="modal" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h2>Crear Nuevo Usuario</h2>
+                <h2 id="userModalTitle">Crear Nuevo Usuario</h2>
                 <span class="modal-close" onclick="closeModal('userModal')">&times;</span>
             </div>
             <div class="modal-body">
-                <p>Formulario para crear usuario - En desarrollo</p>
+                <form id="userForm" onsubmit="submitUserForm(event)">
+                    <input type="hidden" id="userId" name="userId">
+
+                    <div class="form-group">
+                        <label for="userName">Nombre Completo *</label>
+                        <input type="text" id="userName" name="name" required class="form-control" placeholder="Ej: Juan Pérez">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userEmail">Correo Electrónico *</label>
+                        <input type="email" id="userEmail" name="email" required class="form-control" placeholder="Ej: juan@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userPassword">Contraseña *</label>
+                        <input type="password" id="userPassword" name="password" required class="form-control" placeholder="Mínimo 6 caracteres">
+                        <small class="form-text text-muted">Dejar en blanco para mantener la contraseña actual (solo al editar)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userRole">Rol *</label>
+                        <select id="userRole" name="role" required class="form-control">
+                            <option value="">Seleccionar rol...</option>
+                            <option value="cliente">Cliente</option>
+                            <option value="empleado">Empleado</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userPhone">Teléfono</label>
+                        <input type="tel" id="userPhone" name="phone" class="form-control" placeholder="Ej: 3001234567">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="userActive" name="is_active" checked>
+                            Usuario Activo
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="userSubmitBtn">
+                            <i class="fas fa-save"></i> Guardar Usuario
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -858,7 +1331,7 @@
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     
-    <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}?v=6"></script>
     
     <!-- App JS (helpers like formatCOP) -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>

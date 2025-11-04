@@ -1,3 +1,9 @@
+// Formatear moneda en pesos colombianos
+function formatCOP(amount) {
+    const intAmount = Math.round(amount || 0);
+    return '$' + intAmount.toLocaleString('es-CO');
+}
+
 async function updateQuantity(itemId, change) {
     const qtyElement = document.getElementById(`qty-${itemId}`);
     const currentQty = parseInt(qtyElement.textContent);
@@ -104,10 +110,10 @@ function updateTotals() {
         const elTax = document.getElementById('checkout-tax');
         const elTotal = document.getElementById('checkout-total');
         
-        if (elSubtotal) elSubtotal.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
-        if (elShipping) elShipping.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
-        if (elTax) elTax.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
-        if (elTotal) elTotal.textContent = typeof formatCOP === 'function' ? formatCOP(0) : '$0';
+        if (elSubtotal) elSubtotal.textContent = formatCOP(0);
+        if (elShipping) elShipping.textContent = formatCOP(0);
+        if (elTax) elTax.textContent = formatCOP(0);
+        if (elTotal) elTotal.textContent = formatCOP(0);
         return;
     }
     
@@ -182,7 +188,7 @@ function updateTotals() {
     });
     
     if (elSubtotal) {
-        const newValue = typeof formatCOP === 'function' ? formatCOP(subtotal) : '$' + (subtotal || 0).toLocaleString();
+        const newValue = formatCOP(subtotal);
         elSubtotal.textContent = newValue;
         console.log('Subtotal actualizado a:', newValue);
     } else {
@@ -190,7 +196,7 @@ function updateTotals() {
     }
     
     if (elShipping) {
-        const newValue = typeof formatCOP === 'function' ? formatCOP(shipping) : '$' + (shipping || 0).toLocaleString();
+        const newValue = formatCOP(shipping);
         elShipping.textContent = newValue;
         console.log('Envío actualizado a:', newValue);
     } else {
@@ -198,7 +204,7 @@ function updateTotals() {
     }
     
     if (elTax) {
-        const newValue = typeof formatCOP === 'function' ? formatCOP(tax) : '$' + (tax || 0).toLocaleString();
+        const newValue = formatCOP(tax);
         elTax.textContent = newValue;
         console.log('IVA actualizado a:', newValue);
     } else {
@@ -206,7 +212,7 @@ function updateTotals() {
     }
     
     if (elTotal) {
-        const newValue = typeof formatCOP === 'function' ? formatCOP(total) : '$' + (total || 0).toLocaleString();
+        const newValue = formatCOP(total);
         elTotal.textContent = newValue;
         console.log('Total actualizado a:', newValue);
     } else {
@@ -226,7 +232,7 @@ function updateTotals() {
                     <i class="fas fa-truck free-shipping-icon"></i>
                     <div class="free-shipping-content">
                         <h3>Envío Gratis</h3>
-                        <p>En compras superiores a ${typeof formatCOP === 'function' ? formatCOP(200000) : '$200,000'}. Tu pedido califica para envío gratuito.</p>
+                        <p>En compras superiores a ${formatCOP(200000)}. Tu pedido califica para envío gratuito.</p>
                     </div>
                 `;
                 orderSummary.appendChild(freeShippingDiv);

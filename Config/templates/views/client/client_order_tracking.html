@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Rastreo de Pedido #{{ order.id }} - FerreJunior</title>
+    
+    <!-- Font Awesome -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/client_order_tracking.css') }}?v=2">
+</head>
+<body>
+<!-- Header -->
+<header class="header-navbar">
+    <div class="navbar-content">
+        <div class="logo">
+            <i class="fas fa-tools"></i>
+            FerreJunior
+        </div>
+
+        <div class="user-menu">
+            <button class="user-menu-btn" onclick="toggleUserMenu()">
+                <i class="fas fa-user-circle fa-lg"></i>
+            </button>
+            <div class="dropdown-menu" id="userMenu">
+                <a class="dropdown-item" href="/client/profile">
+                    <i class="fas fa-user"></i> Mi Perfil
+                </a>
+                <a class="dropdown-item" href="/client/orders">
+                    <i class="fas fa-shopping-cart"></i> Mis Pedidos
+                </a>
+                <a class="dropdown-item" href="/client/addresses">
+                    <i class="fas fa-map-marker-alt"></i> Direcciones
+                </a>
+                <div class="dropdown-divider" style="height: 1px; background: #e2e8f0; margin: 8px 0;"></div>
+                <a class="dropdown-item" href="/auth/logout">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="tracking-container">
+    <!-- Page Title -->
+    <div class="page-header">
+        <a href="/client/orders" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Volver a mis pedidos
+        </a>
+        <h1 class="page-title">Rastreo en Tiempo Real</h1>
+        <div class="order-info-header">
+            <span class="order-number">Pedido #{{ order.id }}</span>
+            <span class="order-status status-{{ order.status }}">{{ order.status|upper }}</span>
+        </div>
+    </div>
+
+    <div class="tracking-content">
+        <!-- Map Section -->
+        <div class="map-section">
+            <div id="map" class="delivery-map"></div>
+            
+            <!-- ETA Card (floating) -->
+            <div class="eta-card" id="etaCard">
+                <div class="eta-icon">
+                    <i class="fas fa-shipping-fast"></i>
+                </div>
+                <div class="eta-info">
+                    <div class="eta-label">Tiempo estimado de llegada</div>
+                    <div class="eta-time" id="etaTime">Calculando...</div>
+                    <div class="eta-distance" id="etaDistance">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info-panel">
+            <!-- Driver Info -->
+            <div class="info-card driver-card" id="driverCard">
+                <div class="card-header">
+                    <i class="fas fa-user-circle"></i>
+                    <h3>Información del Conductor</h3>
+                </div>
+                <div class="card-body" id="driverInfo">
+                    <div class="loading-skeleton">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Status Timeline -->
+            <div class="info-card timeline-card">
+                <div class="card-header">
+                    <i class="fas fa-list-ul"></i>
+                    <h3>Estado del Pedido</h3>
+                </div>
+                <div class="card-body">
+                    <div class="timeline" id="statusTimeline">
+                        <div class="loading-skeleton">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Details -->
+            <div class="info-card details-card">
+                <div class="card-header">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Detalles de Entrega</h3>
+                </div>
+                <div class="card-body">
+                    <div class="detail-item">
+                        <div class="detail-label">Dirección de entrega</div>
+                        <div class="detail-value" id="deliveryAddress">{{ order.shipping_address }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Método de pago</div>
+                        <div class="detail-value">{{ order.payment_method|upper }}</div>
+                    </div>
+                    {% if order.notes %}
+                    <div class="detail-item">
+                        <div class="detail-label">Notas</div>
+                        <div class="detail-value">{{ order.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Refresh Info -->
+            <div class="refresh-info">
+                <i class="fas fa-sync-alt"></i>
+                <span>Actualización automática cada 30 segundos</span>
+                <span class="last-update" id="lastUpdate">Última actualización: Ahora</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data for JavaScript -->
+<div id="orderData" 
+     data-order-id="{{ order.id }}"
+     data-google-maps-key="{{ google_maps_api_key }}"
+     style="display: none;">
+</div>
+
+<!-- Scripts -->
+<script>
+    // User menu toggle
+    function toggleUserMenu() {
+        const menu = document.getElementById('userMenu');
+        menu.classList.toggle('show');
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('userMenu');
+        const button = document.querySelector('.user-menu-btn');
+        
+        if (!menu.contains(event.target) && !button.contains(event.target)) {
+            menu.classList.remove('show');
+        }
+    });
+
+    // Pass data to JavaScript
+    const ORDER_ID = {{ order.id }};
+    const GOOGLE_MAPS_API_KEY = "{{ google_maps_api_key }}";
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=geometry,places&language=es"></script>
+<script src="{{ url_for('static', filename='js/client_order_tracking.js') }}?v=2"></script>
+
+</body>
+</html>

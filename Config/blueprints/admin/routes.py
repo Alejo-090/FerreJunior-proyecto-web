@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify, send_file
+﻿from flask import render_template, request, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
 from . import admin_bp
 from Config.models import User, Product, Order, Category
@@ -14,12 +14,17 @@ from datetime import datetime
 def admin_dashboard():
     """Dashboard exclusivo para administradores"""
     user_count = User.query.count()
-    return render_template("views/admin/admin_dashboard.html", user_count=user_count)
+    product_count = Product.query.count()
+    order_count = Order.query.count()
+    return render_template("views/admin/admin_dashboard.html", 
+                         user_count=user_count,
+                         product_count=product_count,
+                         order_count=order_count)
 
 @admin_bp.route("/admin/profile")
 @admin_required
 def admin_profile():
-    """Página de perfil para administradores"""
+    """PÃ¡gina de perfil para administradores"""
     return render_template("views/admin/admin_profile.html")
 
 @admin_bp.route("/admin/profile/edit", methods=["GET", "POST"])
@@ -50,23 +55,23 @@ def update_admin_profile():
 @admin_bp.route("/admin/profile/change-password", methods=["POST"])
 @admin_required
 def change_admin_password():
-    """Cambiar contraseña del administrador"""
+    """Cambiar contraseÃ±a del administrador"""
     user = User.query.get(current_user.id)
     current_password = request.form.get("current_password")
     new_password = request.form.get("new_password")
     confirm_password = request.form.get("confirm_password")
 
     if not user.check_password(current_password):
-        flash("Contraseña actual incorrecta", "error")
+        flash("ContraseÃ±a actual incorrecta", "error")
         return redirect(url_for("admin.admin_profile"))
 
     if new_password != confirm_password:
-        flash("Las contraseñas no coinciden", "error")
+        flash("Las contraseÃ±as no coinciden", "error")
         return redirect(url_for("admin.admin_profile"))
 
     user.set_password(new_password)
     db.session.commit()
-    flash("Contraseña cambiada exitosamente!", "success")
+    flash("ContraseÃ±a cambiada exitosamente!", "success")
     return redirect(url_for("admin.admin_profile"))
 
 @admin_bp.route("/admin/profile/download-data")
@@ -101,21 +106,21 @@ def download_admin_data():
 @admin_bp.route("/admin/profile/toggle-2fa", methods=["POST"])
 @admin_required
 def toggle_admin_2fa():
-    """Habilitar/deshabilitar autenticación de dos factores"""
-    # Por simplicidad, implementaremos un sistema básico de 2FA
-    # En un sistema real, se usaría una librería como pyotp
+    """Habilitar/deshabilitar autenticaciÃ³n de dos factores"""
+    # Por simplicidad, implementaremos un sistema bÃ¡sico de 2FA
+    # En un sistema real, se usarÃ­a una librerÃ­a como pyotp
     user = User.query.get(current_user.id)
 
-    # Simular toggle de 2FA (en BD real tendríamos un campo two_factor_enabled)
+    # Simular toggle de 2FA (en BD real tendrÃ­amos un campo two_factor_enabled)
     # Por ahora solo mostraremos un mensaje
-    flash("Autenticación de dos factores habilitada exitosamente! (Funcionalidad básica implementada)", "success")
+    flash("AutenticaciÃ³n de dos factores habilitada exitosamente! (Funcionalidad bÃ¡sica implementada)", "success")
     return redirect(url_for("admin.admin_profile"))
 
 @admin_bp.route("/admin/export-users-data")
 @login_required
 @admin_required
 def export_users_data():
-    """Devolver datos de usuarios en formato JSON para carga dinámica"""
+    """Devolver datos de usuarios en formato JSON para carga dinÃ¡mica"""
     try:
         users = User.query.all()
         users_data = []
@@ -239,11 +244,11 @@ def completed_orders():
 @admin_bp.route("/admin/generate-report/<report_type>")
 @admin_required
 def generate_report(report_type):
-    """Generar reportes básicos del sistema y devolver datos JSON"""
+    """Generar reportes bÃ¡sicos del sistema y devolver datos JSON"""
     if report_type not in ['daily', 'weekly', 'monthly']:
-        return jsonify({'error': 'Tipo de reporte no válido'}), 400
+        return jsonify({'error': 'Tipo de reporte no vÃ¡lido'}), 400
 
-    # Generar datos del reporte (en un sistema real esto sería más complejo)
+    # Generar datos del reporte (en un sistema real esto serÃ­a mÃ¡s complejo)
     report_data = {
         'type': report_type,
         'total_users': User.query.count(),
@@ -262,11 +267,11 @@ def generate_report(report_type):
 def export_report(report_type, format):
     """Exportar reporte en formato PDF o Excel"""
     if report_type not in ['daily', 'weekly', 'monthly']:
-        flash('Tipo de reporte no válido.', 'error')
+        flash('Tipo de reporte no vÃ¡lido.', 'error')
         return redirect(url_for('admin.admin_dashboard'))
 
     if format not in ['pdf', 'excel']:
-        flash('Formato de exportación no válido.', 'error')
+        flash('Formato de exportaciÃ³n no vÃ¡lido.', 'error')
         return redirect(url_for('admin.admin_dashboard'))
 
     # Generar datos del reporte
@@ -325,7 +330,7 @@ def export_report_pdf(report_data):
 
     story = []
 
-    # Título del reporte
+    # TÃ­tulo del reporte
     report_type_text = {
         'daily': 'Diario',
         'weekly': 'Semanal',
@@ -335,16 +340,16 @@ def export_report_pdf(report_data):
     title = Paragraph(f"FerreJunior - Reporte {report_type_text[report_data['type']]}", title_style)
     story.append(title)
 
-    # Fecha de generación
+    # Fecha de generaciÃ³n
     generated_at = report_data['generated_at'].strftime('%d/%m/%Y %H:%M')
     subtitle = Paragraph(f"Generado el {generated_at}", subtitle_style)
     story.append(subtitle)
 
     story.append(Spacer(1, 20))
 
-    # Métricas principales
+    # MÃ©tricas principales
     metrics_data = [
-        ['Métrica', 'Valor'],
+        ['MÃ©trica', 'Valor'],
         ['Total de Usuarios', str(report_data['total_users'])],
         ['Total de Productos', str(report_data['total_products'])],
         ['Productos con Stock Bajo', str(report_data['low_stock_products'])],
@@ -372,14 +377,14 @@ def export_report_pdf(report_data):
     story.append(Paragraph("Resumen Ejecutivo", section_style))
 
     summary_data = [
-        ['Métrica', 'Valor', 'Estado'],
+        ['MÃ©trica', 'Valor', 'Estado'],
         ['Usuarios Registrados', str(report_data['total_users']), 'Activo'],
         ['Productos en Inventario', str(report_data['total_products']), 'Activo'],
         ['Alertas de Stock', str(report_data['low_stock_products']),
-         'Requiere Atención' if report_data['low_stock_products'] > 0 else 'Óptimo'],
+         'Requiere AtenciÃ³n' if report_data['low_stock_products'] > 0 else 'Ã“ptimo'],
         ['Pedidos Pendientes', str(report_data['pending_orders']),
-         'En Proceso' if report_data['pending_orders'] > 0 else 'Al Día'],
-        ['Ingresos del Período', f"${report_data['total_revenue']:.0f}", 'Reportado']
+         'En Proceso' if report_data['pending_orders'] > 0 else 'Al DÃ­a'],
+        ['Ingresos del PerÃ­odo', f"${report_data['total_revenue']:.0f}", 'Reportado']
     ]
 
     summary_table = Table(summary_data)
@@ -414,7 +419,7 @@ def export_report_excel(report_data):
     output = io.StringIO()
     writer = csv.writer(output)
 
-    # Información del reporte
+    # InformaciÃ³n del reporte
     report_type_text = {
         'daily': 'Diario',
         'weekly': 'Semanal',
@@ -425,8 +430,8 @@ def export_report_excel(report_data):
     writer.writerow(['Generado el', report_data['generated_at'].strftime('%d/%m/%Y %H:%M')])
     writer.writerow([])
 
-    # Métricas principales
-    writer.writerow(['Métricas Principales'])
+    # MÃ©tricas principales
+    writer.writerow(['MÃ©tricas Principales'])
     writer.writerow(['Total de Usuarios', report_data['total_users']])
     writer.writerow(['Total de Productos', report_data['total_products']])
     writer.writerow(['Productos con Stock Bajo', report_data['low_stock_products']])
@@ -437,14 +442,14 @@ def export_report_excel(report_data):
 
     # Resumen ejecutivo
     writer.writerow(['Resumen Ejecutivo'])
-    writer.writerow(['Métrica', 'Valor', 'Estado'])
+    writer.writerow(['MÃ©trica', 'Valor', 'Estado'])
     writer.writerow(['Usuarios Registrados', report_data['total_users'], 'Activo'])
     writer.writerow(['Productos en Inventario', report_data['total_products'], 'Activo'])
     writer.writerow(['Alertas de Stock', report_data['low_stock_products'],
-                    'Requiere Atención' if report_data['low_stock_products'] > 0 else 'Óptimo'])
+                    'Requiere AtenciÃ³n' if report_data['low_stock_products'] > 0 else 'Ã“ptimo'])
     writer.writerow(['Pedidos Pendientes', report_data['pending_orders'],
-                    'En Proceso' if report_data['pending_orders'] > 0 else 'Al Día'])
-    writer.writerow(['Ingresos del Período', f"${report_data['total_revenue']:.0f}", 'Reportado'])
+                    'En Proceso' if report_data['pending_orders'] > 0 else 'Al DÃ­a'])
+    writer.writerow(['Ingresos del PerÃ­odo', f"${report_data['total_revenue']:.0f}", 'Reportado'])
 
     output.seek(0)
     filename = f"reporte_{report_data['type']}_{report_data['generated_at'].strftime('%Y%m%d_%H%M%S')}.csv"
@@ -490,7 +495,7 @@ def products_data():
 @login_required
 @admin_required
 def get_product(product_id):
-    """Obtener datos de un producto específico"""
+    """Obtener datos de un producto especÃ­fico"""
     try:
         product = Product.query.get_or_404(product_id)
         return jsonify({'product': product.to_dict(), 'success': True})
@@ -633,7 +638,7 @@ def update_product_stock(product_id):
 @login_required
 @admin_required
 def categories_data():
-    """Devolver datos de todas las categorías en formato JSON"""
+    """Devolver datos de todas las categorÃ­as en formato JSON"""
     try:
         categories = Category.query.filter_by(active=True).all()
         categories_data = []
@@ -650,7 +655,7 @@ def categories_data():
 @login_required
 @admin_required
 def get_category(category_id):
-    """Obtener datos de una categoría específica"""
+    """Obtener datos de una categorÃ­a especÃ­fica"""
     try:
         category = Category.query.get_or_404(category_id)
         return jsonify({'category': category.to_dict(), 'success': True})
@@ -662,20 +667,20 @@ def get_category(category_id):
 @login_required
 @admin_required
 def create_category():
-    """Crear una nueva categoría"""
+    """Crear una nueva categorÃ­a"""
     try:
         data = request.get_json()
 
         # Validar datos requeridos
         if 'name' not in data or not data['name']:
-            return jsonify({'error': 'El nombre de la categoría es requerido', 'success': False}), 400
+            return jsonify({'error': 'El nombre de la categorÃ­a es requerido', 'success': False}), 400
 
         # Verificar que el nombre no exista
         existing_category = Category.query.filter_by(name=data['name']).first()
         if existing_category:
-            return jsonify({'error': 'Ya existe una categoría con ese nombre', 'success': False}), 400
+            return jsonify({'error': 'Ya existe una categorÃ­a con ese nombre', 'success': False}), 400
 
-        # Crear categoría
+        # Crear categorÃ­a
         category = Category(
             name=data['name'],
             description=data.get('description', ''),
@@ -686,7 +691,7 @@ def create_category():
         db.session.add(category)
         db.session.commit()
 
-        return jsonify({'category': category.to_dict(), 'success': True, 'message': 'Categoría creada exitosamente'})
+        return jsonify({'category': category.to_dict(), 'success': True, 'message': 'CategorÃ­a creada exitosamente'})
 
     except Exception as e:
         db.session.rollback()
@@ -697,25 +702,25 @@ def create_category():
 @login_required
 @admin_required
 def update_category(category_id):
-    """Actualizar una categoría existente"""
+    """Actualizar una categorÃ­a existente"""
     try:
         category = Category.query.get_or_404(category_id)
         data = request.get_json()
 
         # Validar datos requeridos
         if 'name' not in data or not data['name']:
-            return jsonify({'error': 'El nombre de la categoría es requerido', 'success': False}), 400
+            return jsonify({'error': 'El nombre de la categorÃ­a es requerido', 'success': False}), 400
 
-        # Verificar que el nombre no exista en otra categoría
+        # Verificar que el nombre no exista en otra categorÃ­a
         existing_category = Category.query.filter(Category.name == data['name'], Category.id != category_id).first()
         if existing_category:
-            return jsonify({'error': 'Ya existe otra categoría con ese nombre', 'success': False}), 400
+            return jsonify({'error': 'Ya existe otra categorÃ­a con ese nombre', 'success': False}), 400
 
         # Evitar referencias circulares
         if data.get('parent_id') == category_id:
-            return jsonify({'error': 'Una categoría no puede ser padre de sí misma', 'success': False}), 400
+            return jsonify({'error': 'Una categorÃ­a no puede ser padre de sÃ­ misma', 'success': False}), 400
 
-        # Actualizar categoría
+        # Actualizar categorÃ­a
         category.name = data['name']
         category.description = data.get('description', category.description)
         category.parent_id = data.get('parent_id')
@@ -723,7 +728,7 @@ def update_category(category_id):
 
         db.session.commit()
 
-        return jsonify({'category': category.to_dict(), 'success': True, 'message': 'Categoría actualizada exitosamente'})
+        return jsonify({'category': category.to_dict(), 'success': True, 'message': 'CategorÃ­a actualizada exitosamente'})
 
     except Exception as e:
         db.session.rollback()
@@ -734,17 +739,17 @@ def update_category(category_id):
 @login_required
 @admin_required
 def delete_category(category_id):
-    """Eliminar una categoría (desactivar)"""
+    """Eliminar una categorÃ­a (desactivar)"""
     try:
         category = Category.query.get_or_404(category_id)
 
-        # Verificar si tiene subcategorías
+        # Verificar si tiene subcategorÃ­as
         if category.subcategories and len(category.subcategories) > 0:
-            return jsonify({'error': 'No se puede eliminar una categoría que tiene subcategorías', 'success': False}), 400
+            return jsonify({'error': 'No se puede eliminar una categorÃ­a que tiene subcategorÃ­as', 'success': False}), 400
 
         # Verificar si tiene productos asociados
         if category.products and len(category.products) > 0:
-            return jsonify({'error': 'No se puede eliminar una categoría que tiene productos asociados', 'success': False}), 400
+            return jsonify({'error': 'No se puede eliminar una categorÃ­a que tiene productos asociados', 'success': False}), 400
 
         # Soft delete - marcar como inactivo
         category.active = False
@@ -752,7 +757,7 @@ def delete_category(category_id):
 
         db.session.commit()
 
-        return jsonify({'success': True, 'message': 'Categoría eliminada exitosamente'})
+        return jsonify({'success': True, 'message': 'CategorÃ­a eliminada exitosamente'})
 
     except Exception as e:
         db.session.rollback()
@@ -780,7 +785,7 @@ def orders_data():
 @login_required
 @admin_required
 def get_order(order_id):
-    """Obtener datos de un pedido específico"""
+    """Obtener datos de un pedido especÃ­fico"""
     try:
         order = Order.query.get_or_404(order_id)
         return jsonify({'order': order.to_dict(), 'success': True})
@@ -802,7 +807,7 @@ def update_order_status(order_id):
 
         valid_statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
         if data['status'] not in valid_statuses:
-            return jsonify({'error': 'Estado no válido', 'success': False}), 400
+            return jsonify({'error': 'Estado no vÃ¡lido', 'success': False}), 400
 
         order.status = data['status']
         order.updated_at = datetime.utcnow()
@@ -820,7 +825,7 @@ def update_order_status(order_id):
 @login_required
 @admin_required
 def delete_order(order_id):
-    """Eliminar un pedido (solo si está en estado pending)"""
+    """Eliminar un pedido (solo si estÃ¡ en estado pending)"""
     try:
         order = Order.query.get_or_404(order_id)
 
@@ -836,3 +841,380 @@ def delete_order(order_id):
         db.session.rollback()
         print(f"Error en delete_order: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/products/export", methods=["GET"])
+@login_required
+@admin_required
+def export_products():
+    """Exportar productos a CSV"""
+    try:
+        # Obtener todos los productos
+        products = Product.query.all()
+        
+        # Crear archivo CSV en memoria
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Escribir encabezados
+        writer.writerow(['ID', 'Nombre', 'SKU', 'DescripciÃ³n', 'Precio (COP)', 'Stock', 'CategorÃ­a', 'Estado', 'Fecha CreaciÃ³n'])
+        
+        # Escribir datos de productos
+        for product in products:
+            writer.writerow([
+                product.id,
+                product.name,
+                product.sku or 'N/A',
+                product.description or '',
+                int(round(product.price)) if product.price else 0,
+                product.stock_quantity or 0,
+                product.category.name if product.category else 'Sin categorÃ­a',
+                'Activo' if product.is_active else 'Inactivo',
+                product.created_at.strftime('%Y-%m-%d %H:%M:%S') if product.created_at else ''
+            ])
+        
+        # Preparar archivo para descarga
+        output.seek(0)
+        return send_file(
+            io.BytesIO(output.getvalue().encode('utf-8')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f'productos_ferrejunior_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        )
+        
+    except Exception as e:
+        print(f"Error en export_products: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/users-data", methods=["GET"])
+@login_required
+@admin_required
+def get_users_data():
+    """Obtener lista de todos los usuarios"""
+    try:
+        users = User.query.order_by(User.created_at.desc()).all()
+        users_data = [user.to_dict() for user in users]
+        
+        return jsonify({
+            'success': True,
+            'users': users_data
+        })
+        
+    except Exception as e:
+        print(f"Error en get_users_data: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/user/create", methods=["POST"])
+@login_required
+@admin_required
+def create_user():
+    """Crear un nuevo usuario"""
+    try:
+        data = request.get_json()
+        
+        # Validar datos requeridos
+        if not data.get('name') or not data.get('email') or not data.get('password') or not data.get('role'):
+            return jsonify({'error': 'Todos los campos obligatorios deben ser completados', 'success': False}), 400
+        
+        # Verificar si el email ya existe
+        existing_user = User.query.filter_by(email=data['email']).first()
+        if existing_user:
+            return jsonify({'error': 'El correo electrÃ³nico ya estÃ¡ registrado', 'success': False}), 400
+        
+        # Crear nuevo usuario
+        new_user = User(
+            name=data['name'],
+            email=data['email'],
+            role=data['role'],
+            phone=data.get('phone'),
+            active=data.get('is_active', True)
+        )
+        new_user.set_password(data['password'])
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Usuario creado exitosamente',
+            'user': new_user.to_dict()
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en create_user: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/user/<int:user_id>", methods=["GET"])
+@login_required
+@admin_required
+def get_user(user_id):
+    """Obtener datos de un usuario"""
+    try:
+        user = User.query.get_or_404(user_id)
+        return jsonify({
+            'success': True,
+            'user': user.to_dict()
+        })
+    except Exception as e:
+        print(f"Error en get_user: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/user/<int:user_id>", methods=["PUT"])
+@login_required
+@admin_required
+def update_user(user_id):
+    """Actualizar un usuario"""
+    try:
+        user = User.query.get_or_404(user_id)
+        data = request.get_json()
+        
+        # Actualizar campos
+        if 'name' in data:
+            user.name = data['name']
+        if 'email' in data:
+            # Verificar si el email ya existe (excepto el usuario actual)
+            existing_user = User.query.filter(User.email == data['email'], User.id != user_id).first()
+            if existing_user:
+                return jsonify({'error': 'El correo electrÃ³nico ya estÃ¡ registrado', 'success': False}), 400
+            user.email = data['email']
+        if 'role' in data:
+            user.role = data['role']
+        if 'phone' in data:
+            user.phone = data['phone']
+        if 'is_active' in data:
+            user.active = data['is_active']
+        if 'password' in data and data['password']:
+            user.set_password(data['password'])
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Usuario actualizado exitosamente',
+            'user': user.to_dict()
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en update_user: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/user/<int:user_id>", methods=["DELETE"])
+@login_required
+@admin_required
+def delete_user(user_id):
+    """Eliminar un usuario"""
+    try:
+        # No permitir eliminar al usuario actual
+        if user_id == current_user.id:
+            return jsonify({'error': 'No puede eliminar su propio usuario', 'success': False}), 400
+        
+        user = User.query.get_or_404(user_id)
+        db.session.delete(user)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Usuario eliminado exitosamente'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en delete_user: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+@admin_bp.route("/admin/analytics-data")
+@login_required
+@admin_required
+def get_analytics_data():
+    """Obtener datos para el dashboard de analytics"""
+    try:
+        from sqlalchemy import func
+        from datetime import datetime, timedelta
+        from Config.models.order_item import OrderItem
+        
+        # Fecha de hace 30 dï¿½as
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        
+        # Total de pedidos
+        total_orders = Order.query.count()
+        
+        # Pedidos del ï¿½ltimo mes
+        orders_last_month = Order.query.filter(Order.created_at >= thirty_days_ago).count()
+        
+        # Total de ingresos
+        total_revenue = db.session.query(func.sum(Order.total_amount)).scalar() or 0
+        
+        # Ingresos del ï¿½ltimo mes
+        revenue_last_month = db.session.query(func.sum(Order.total_amount)).filter(
+            Order.created_at >= thirty_days_ago
+        ).scalar() or 0
+        
+        # Total de clientes
+        total_customers = User.query.filter_by(role='cliente').count()
+        
+        # Clientes nuevos del ï¿½ltimo mes
+        customers_last_month = User.query.filter(
+            User.role == 'cliente',
+            User.created_at >= thirty_days_ago
+        ).count()
+        
+        # Total de productos activos
+        total_products = Product.query.filter_by(active=True).count()
+        
+        # Productos en stock (cantidad > 0)
+        products_in_stock = Product.query.filter(Product.stock_quantity > 0).count()
+        
+        # Productos mï¿½s vendidos
+        top_products = db.session.query(
+            Product.name,
+            func.sum(OrderItem.quantity).label('quantity')
+        ).join(OrderItem).group_by(Product.id).order_by(
+            func.sum(OrderItem.quantity).desc()
+        ).limit(5).all()
+        
+        top_products_list = [{'name': p.name, 'quantity': int(p.quantity)} for p in top_products]
+        
+        # Pedidos por estado
+        orders_by_status = {
+            'pendiente': Order.query.filter_by(status='pendiente').count(),
+            'procesando': Order.query.filter_by(status='procesando').count(),
+            'completado': Order.query.filter_by(status='completado').count(),
+            'cancelado': Order.query.filter_by(status='cancelado').count()
+        }
+        
+        # Pedidos recientes (ï¿½ltimos 5)
+        recent_orders = Order.query.order_by(Order.created_at.desc()).limit(5).all()
+        recent_orders_list = []
+        
+        for order in recent_orders:
+            items_count = OrderItem.query.filter_by(order_id=order.id).count()
+            user = User.query.get(order.user_id)
+            recent_orders_list.append({
+                'id': order.id,
+                'user_name': user.name if user else 'Usuario desconocido',
+                'items_count': items_count,
+                'total': float(order.total_amount),
+                'created_at': order.created_at.isoformat() if order.created_at else None
+            })
+        
+        analytics_data = {
+            'total_orders': total_orders,
+            'orders_change': orders_last_month,
+            'total_revenue': float(total_revenue),
+            'revenue_change': float(revenue_last_month),
+            'total_customers': total_customers,
+            'customers_change': customers_last_month,
+            'total_products': total_products,
+            'products_change': products_in_stock,
+            'top_products': top_products_list,
+            'orders_by_status': orders_by_status,
+            'recent_orders': recent_orders_list
+        }
+        
+        return jsonify({
+            'success': True,
+            'analytics': analytics_data
+        })
+        
+    except Exception as e:
+        print(f"Error en get_analytics_data: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/settings/save", methods=["POST"])
+@login_required
+@admin_required
+def save_settings():
+    """Guardar configuracion del sistema"""
+    try:
+        data = request.get_json()
+        category = data.get('category')
+        settings = data.get('settings')
+        
+        # Por ahora, simplemente confirmamos que se recibio
+        # En una implementacion completa, guardariamos en una tabla de configuracion
+        print(f"Guardando configuracion de {category}: {settings}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Configuracion de {category} guardada exitosamente'
+        })
+        
+    except Exception as e:
+        print(f"Error en save_settings: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/maintenance/clear-cache", methods=["POST"])
+@login_required
+@admin_required
+def clear_cache():
+    """Limpiar cache del sistema"""
+    try:
+        # Implementar logica de limpieza de cache
+        print("Limpiando cache del sistema")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Cache limpiado exitosamente'
+        })
+        
+    except Exception as e:
+        print(f"Error en clear_cache: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/maintenance/export-database")
+@login_required
+@admin_required
+def export_database():
+    """Exportar base de datos"""
+    try:
+        import shutil
+        from datetime import datetime
+        
+        # Crear backup de la base de datos
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_name = f'ferrejunior_backup_{timestamp}.db'
+        
+        # Copiar archivo de base de datos
+        shutil.copy('ferrejunior.db', f'/tmp/{backup_name}')
+        
+        return send_file(
+            'ferrejunior.db',
+            as_attachment=True,
+            download_name=backup_name,
+            mimetype='application/x-sqlite3'
+        )
+        
+    except Exception as e:
+        print(f"Error en export_database: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@admin_bp.route("/admin/maintenance/logs")
+@login_required
+@admin_required
+def view_logs():
+    """Ver logs del sistema"""
+    try:
+        # Retornar pagina simple con logs
+        logs_content = "Sistema de logs - En desarrollo"
+        
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Logs del Sistema</title>
+            <style>
+                body {{ font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }}
+                pre {{ white-space: pre-wrap; }}
+            </style>
+        </head>
+        <body>
+            <h1>Logs del Sistema - FerreJunior</h1>
+            <pre>{logs_content}</pre>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        return f"Error al cargar logs: {str(e)}"

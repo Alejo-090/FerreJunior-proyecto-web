@@ -1,0 +1,100 @@
+{% extends "main/layout.html" %}
+
+{% block title %}Atención al Cliente - FerreJunior{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/client_support.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="support-container">
+    <div class="support-header">
+        <h1>Atención al Cliente</h1>
+        <button class="btn btn-primary" onclick="showCreateTicketModal()">
+            <i class="fas fa-plus"></i> Crear Nuevo Ticket
+        </button>
+    </div>
+
+    <div class="tickets-section">
+        <h2><i class="fas fa-ticket-alt"></i> Mis Tickets</h2>
+        <div class="filters-section">
+            <select id="statusFilter" class="form-control" onchange="filterMyTickets()">
+                <option value="">Todos los estados</option>
+                <option value="open">Abiertos</option>
+                <option value="in_progress">En Proceso</option>
+                <option value="resolved">Resueltos</option>
+                <option value="closed">Cerrados</option>
+            </select>
+        </div>
+        <div id="myTicketsList" class="tickets-list">
+            <div class="loading-message">Cargando tickets...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Ticket Modal -->
+<div id="createTicketModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Crear Nuevo Ticket</h2>
+            <span class="modal-close" onclick="closeCreateTicketModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="createTicketForm" onsubmit="submitNewTicket(event)">
+                <div class="form-group">
+                    <label for="ticketSubject">Asunto *</label>
+                    <input type="text" id="ticketSubject" class="form-control" required maxlength="200" placeholder="Describe brevemente tu consulta">
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticketCategory">Categoría *</label>
+                    <select id="ticketCategory" class="form-control" required>
+                        <option value="">Selecciona una categoría</option>
+                        <option value="consulta">Consulta</option>
+                        <option value="soporte_tecnico">Soporte Técnico</option>
+                        <option value="reclamo">Reclamo</option>
+                        <option value="sugerencia">Sugerencia</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticketPriority">Prioridad *</label>
+                    <select id="ticketPriority" class="form-control" required>
+                        <option value="low">Baja</option>
+                        <option value="medium" selected>Media</option>
+                        <option value="high">Alta</option>
+                        <option value="urgent">Urgente</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticketMessage">Mensaje *</label>
+                    <textarea id="ticketMessage" class="form-control" rows="5" required placeholder="Describe tu consulta o problema en detalle"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateTicketModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Chat Modal -->
+<div id="ticketChatModal" class="modal" style="display: none;">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="ticketChatTitle">Chat del Ticket</h2>
+            <span class="modal-close" onclick="closeTicketChatModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="ticketChatBody">
+            <!-- Chat content will be loaded here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/client_support.js') }}"></script>
+{% endblock %}

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect, render_template, url_for, flash
+from flask import Flask, request, jsonify, redirect, render_template, url_for, flash, send_from_directory
 from Config.db import app, db
 from flask_login import LoginManager, login_required, logout_user, current_user
 # Import all models to ensure proper table creation order
@@ -7,6 +7,7 @@ from Config.decorators import admin_required, employee_required, client_access
 from flask_marshmallow import Marshmallow
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_wtf.csrf import CSRFError
+import os
 
 # Importar blueprints
 from Config.blueprints.auth import auth_bp
@@ -14,6 +15,7 @@ from Config.blueprints.admin import admin_bp
 from Config.blueprints.employee import employee_bp
 from Config.blueprints.client import client_bp
 from Config.blueprints.main import main_bp
+from Config.blueprints.tracking import tracking_bp
 
 # Registrar blueprints
 app.register_blueprint(main_bp)  # Main primero para las rutas generales
@@ -21,6 +23,7 @@ app.register_blueprint(auth_bp)  # Auth después
 app.register_blueprint(admin_bp)
 app.register_blueprint(employee_bp)
 app.register_blueprint(client_bp)
+app.register_blueprint(tracking_bp)
 
 # Configuración de Flask-Login
 login_manager = LoginManager()
@@ -82,6 +85,14 @@ app.jinja_env.cache = {}
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'Config', 'static', 'img'),
+        'favicon.ico',
+        mimetype='image/vnd.microsoft.icon'
+    )
+
 def init_db():
     """Inicializa la base de datos con usuarios y datos de prueba"""
     with app.app_context():
@@ -89,7 +100,15 @@ def init_db():
         db.create_all()
         
         # Verificar si ya existen usuarios
-        if User.query.count() == 0:
+        try:
+            user_count = User.query.count()
+        except Exception as e:
+            print(f"Error al verificar usuarios, recreando tablas: {e}")
+            db.drop_all()
+            db.create_all()
+            user_count = 0
+        
+        if user_count == 0:
             # Crear usuario administrador
             admin = User()
             admin.name = "Administrador FerreJunior"
@@ -155,13 +174,13 @@ def init_db():
             cat_medicion = Category.query.filter_by(name="Medición").first()
             cat_seguridad = Category.query.filter_by(name="Seguridad").first()
 
-            # Crear productos de prueba
+            # Crear productos de prueba con precios en pesos colombianos
             products = [
                 Product(
                     name="Martillo de Carpintero",
                     description="Martillo profesional para carpintería",
                     sku="MAR001",
-                    price=25.50,
+                    price=25500,  # $25.500 COP
                     stock_quantity=15,
                     min_stock_level=5,
                     category_id=cat_manuales.id if cat_manuales else None,
@@ -172,7 +191,7 @@ def init_db():
                     name="Destornillador Phillips",
                     description="Destornillador profesional con punta Phillips",
                     sku="DES001",
-                    price=8.75,
+                    price=8750,  # $8.750 COP
                     stock_quantity=2,  # Stock bajo
                     min_stock_level=5,
                     category_id=cat_manuales.id if cat_manuales else None,
@@ -183,7 +202,7 @@ def init_db():
                     name="Taladro Inalámbrico",
                     description="Taladro profesional con batería recargable",
                     sku="TAL001",
-                    price=125.00,
+                    price=125000,  # $125.000 COP
                     stock_quantity=8,
                     min_stock_level=3,
                     category_id=cat_electricas.id if cat_electricas else None,
@@ -194,7 +213,7 @@ def init_db():
                     name="Cinta Métrica 5m",
                     description="Cinta métrica profesional de 5 metros",
                     sku="CIN001",
-                    price=12.30,
+                    price=12300,  # $12.300 COP
                     stock_quantity=1,  # Stock bajo
                     min_stock_level=5,
                     category_id=cat_medicion.id if cat_medicion else None,
@@ -205,7 +224,7 @@ def init_db():
                     name="Guantes de Seguridad",
                     description="Guantes resistentes para trabajo pesado",
                     sku="GUA001",
-                    price=15.90,
+                    price=15900,  # $15.900 COP
                     stock_quantity=25,
                     min_stock_level=10,
                     category_id=cat_seguridad.id if cat_seguridad else None,
@@ -232,12 +251,39 @@ def init_db():
 
                 if client_user and admin_user:
                     # Crear pedidos de prueba
+                    # Orden 1: subtotal bajo (aplica envío)
+                    subtotal1 = 28500
+                    shipping1 = 15000
+                    tax1 = int(subtotal1 * 0.19)
+                    total1 = subtotal1 + shipping1 + tax1
+                    
+                    # Orden 2: subtotal alto (envío gratis)
+                    subtotal2 = 350000
+                    shipping2 = 0
+                    tax2 = int(subtotal2 * 0.19)
+                    total2 = subtotal2 + shipping2 + tax2
+                    
+                    # Orden 3: subtotal medio
+                    subtotal3 = 180000
+                    shipping3 = 15000
+                    tax3 = int(subtotal3 * 0.19)
+                    total3 = subtotal3 + shipping3 + tax3
+                    
+                    # Orden 4: subtotal muy alto
+                    subtotal4 = 890000
+                    shipping4 = 0
+                    tax4 = int(subtotal4 * 0.19)
+                    total4 = subtotal4 + shipping4 + tax4
+                    
                     orders = [
                         Order(
                             user_id=client_user.id,
                             order_number="ORD001",
                             status="pending",
-                            total_amount=34.25,
+                            total_amount=float(total1),
+                            subtotal=float(subtotal1),
+                            shipping_cost=float(shipping1),
+                            tax_amount=float(tax1),
                             shipping_address="Calle Principal 123, Ciudad",
                             payment_method="transferencia",
                             notes="Pedido urgente"
@@ -246,7 +292,10 @@ def init_db():
                             user_id=client_user.id,
                             order_number="ORD002",
                             status="shipped",
-                            total_amount=125.00,
+                            total_amount=float(total2),
+                            subtotal=float(subtotal2),
+                            shipping_cost=float(shipping2),
+                            tax_amount=float(tax2),
                             shipping_address="Avenida Central 456, Ciudad",
                             payment_method="tarjeta",
                             notes="Entregar en horario de oficina"
@@ -255,7 +304,10 @@ def init_db():
                             user_id=admin_user.id,
                             order_number="ORD003",
                             status="delivered",
-                            total_amount=41.20,
+                            total_amount=float(total3),
+                            subtotal=float(subtotal3),
+                            shipping_cost=float(shipping3),
+                            tax_amount=float(tax3),
                             shipping_address="Plaza Mayor 789, Ciudad",
                             payment_method="efectivo",
                             notes="Pedido completado"
@@ -264,7 +316,10 @@ def init_db():
                             user_id=client_user.id,
                             order_number="ORD004",
                             status="pending",
-                            total_amount=140.90,
+                            total_amount=float(total4),
+                            subtotal=float(subtotal4),
+                            shipping_cost=float(shipping4),
+                            tax_amount=float(tax4),
                             shipping_address="Calle Nueva 321, Ciudad",
                             payment_method="transferencia",
                             notes="Cliente preferencial"

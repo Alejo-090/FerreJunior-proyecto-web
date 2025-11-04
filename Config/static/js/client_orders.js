@@ -1,10 +1,30 @@
 let currentPage = 1;
 let currentFilters = {};
 
+// Formatear moneda en pesos colombianos
+function formatCOP(amount) {
+    // Convertir a entero para eliminar decimales
+    const intAmount = Math.round(amount || 0);
+    // Formatear con separadores de miles
+    return '$' + intAmount.toLocaleString('es-CO');
+}
+
 // User menu toggle
 function toggleUserMenu() {
     const menu = document.getElementById('userMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    const button = document.querySelector('.user-menu-btn');
+    
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        // Calcular posición del botón
+        const rect = button.getBoundingClientRect();
+        
+        // Posicionar el menú justo debajo del botón
+        menu.style.top = (rect.bottom + 5) + 'px';
+        menu.style.left = (rect.right - 180) + 'px'; // 180px es el min-width del menú
+        menu.style.display = 'block';
+    } else {
+        menu.style.display = 'none';
+    }
 }
 
 // Load orders
@@ -80,7 +100,7 @@ function renderOrders(orders, pagination) {
             <div class="order-item">
                 <div class="item-name">${item.product_name}</div>
                 <div class="item-quantity">x${item.quantity}</div>
-                <div class="item-price">${typeof formatCOP === 'function' ? formatCOP(item.price) : '$' + (item.price || 0).toLocaleString()}</div>
+                <div class="item-price">${formatCOP(item.unit_price_cop || item.price)}</div>
             </div>
         `).join('');
 
@@ -102,19 +122,19 @@ function renderOrders(orders, pagination) {
                     <div class="order-summary">
                         <div class="summary-row">
                             <span>Subtotal:</span>
-                            <span>${typeof formatCOP === 'function' ? formatCOP(order.subtotal) : '$' + (order.subtotal || 0).toLocaleString()}</span>
+                            <span>${formatCOP(order.subtotal_cop || order.subtotal)}</span>
                         </div>
                         <div class="summary-row">
                             <span>Envío:</span>
-                            <span>${typeof formatCOP === 'function' ? formatCOP(order.shipping_cost) : '$' + (order.shipping_cost || 0).toLocaleString()}</span>
+                            <span>${formatCOP(order.shipping_cost_cop || order.shipping_cost)}</span>
                         </div>
                         <div class="summary-row">
                             <span>Impuestos:</span>
-                            <span>${typeof formatCOP === 'function' ? formatCOP(order.tax_amount) : '$' + (order.tax_amount || 0).toLocaleString()}</span>
+                            <span>${formatCOP(order.tax_amount_cop || order.tax_amount)}</span>
                         </div>
                         <div class="summary-total">
                             <span>Total:</span>
-                            <span>${typeof formatCOP === 'function' ? formatCOP(order.total_amount) : '$' + (order.total_amount || 0).toLocaleString()}</span>
+                            <span>${formatCOP(order.total_amount_cop || order.total_amount)}</span>
                         </div>
                     </div>
 

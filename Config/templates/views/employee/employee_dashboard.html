@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Panel de Empleado - FerreJunior</title>
     
-    <!-- CSS -->
+    <!-- CSS de terceros primero -->
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/employee_dashboard.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado de FerreJunior al final para que tenga prioridad -->
+    <link href="{{ url_for('static', filename='css/employee_dashboard.css') }}?v=3" rel="stylesheet">
 </head>
 
 <body>
@@ -35,7 +41,7 @@
                     <a href="#tasks" class="nav-link" onclick="showSection('tasks')">
                         <i class="fas fa-tasks"></i>
                         <span>Mis Tareas</span>
-                        <span class="badge">8</span>
+                        <span class="badge" id="tasks-badge">0</span>
                     </a>
                 </div>
             </div>
@@ -46,7 +52,14 @@
                     <a href="#orders" class="nav-link" onclick="showSection('orders')">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Pedidos</span>
-                        <span class="badge">23</span>
+                        <span class="badge" id="orders-badge">0</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#tracking" class="nav-link" onclick="showSection('tracking')">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>Rastreo de Entregas</span>
+                        <span class="badge" id="tracking-badge">0</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -59,7 +72,7 @@
                     <a href="#customers" class="nav-link" onclick="showSection('customers')">
                         <i class="fas fa-users"></i>
                         <span>Clientes</span>
-                        <span class="badge">15</span>
+                        <span class="badge" id="customers-badge">0</span>
                     </a>
                 </div>
             </div>
@@ -73,9 +86,16 @@
                     </a>
                 </div>
                 <div class="nav-item">
+                    <a href="#tickets" class="nav-link" onclick="showSection('tickets')">
+                        <i class="fas fa-headset"></i>
+                        <span>Atención al Cliente</span>
+                        <span class="badge" id="tickets-badge">0</span>
+                    </a>
+                </div>
+                <div class="nav-item">
                     <a href="#support" class="nav-link" onclick="showSection('support')">
                         <i class="fas fa-life-ring"></i>
-                        <span>Soporte</span>
+                        <span>Ayuda</span>
                     </a>
                 </div>
             </div>
@@ -326,16 +346,73 @@
                 </div>
 
                 <div id="tasks-stats" class="stats-grid">
-                    <!-- Stats will be loaded dynamically -->
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tasks-pending-count">0</h3>
+                                <p>Pendientes</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tasks-inprogress-count">0</h3>
+                                <p>En Progreso</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-spinner"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tasks-completed-count">0</h3>
+                                <p>Completadas</p>
+                            </div>
+                            <div class="stat-icon" style="background: #f0fdf4; color: #22c55e;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tasks-urgent-count">0</h3>
+                                <p>Urgentes</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="actions-container">
-                    <div class="action-section">
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3><i class="fas fa-list-check"></i> Lista de Tareas</h3>
-                        <div id="tasks-list" class="task-list">
-                            <!-- Tasks will be loaded dynamically -->
-                            <div class="loading-message">Cargando tareas...</div>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="taskFilterStatus" class="form-control" style="width: 150px;" onchange="filterTasks()">
+                                <option value="">Todos</option>
+                                <option value="pending">Pendientes</option>
+                                <option value="in_progress">En Progreso</option>
+                                <option value="completed">Completadas</option>
+                            </select>
+                            <select id="taskFilterPriority" class="form-control" style="width: 150px;" onchange="filterTasks()">
+                                <option value="">Toda prioridad</option>
+                                <option value="high">Alta</option>
+                                <option value="medium">Media</option>
+                                <option value="low">Baja</option>
+                            </select>
                         </div>
+                    </div>
+                    <div id="tasks-list" class="task-list">
+                        <!-- Tasks will be loaded dynamically -->
+                        <div class="loading-message">Cargando tareas...</div>
                     </div>
                 </div>
             </div>
@@ -348,75 +425,249 @@
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Nuevos</h3>
-                            <p class="stat-number">12</p>
-                            <p class="stat-label">Pedidos pendientes</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>En Proceso</h3>
-                            <p class="stat-number">8</p>
-                            <p class="stat-label">Siendo preparados</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="orders-pending-count">0</h3>
+                                <p>Pendientes</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-clock"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Completados</h3>
-                            <p class="stat-number">35</p>
-                            <p class="stat-label">Pedidos finalizados hoy</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="orders-shipped-count">0</h3>
+                                <p>Enviados</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-truck"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-dollar-sign"></i>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="orders-delivered-count">0</h3>
+                                <p>Entregados</p>
+                            </div>
+                            <div class="stat-icon" style="background: #f0fdf4; color: #22c55e;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <h3>Ventas</h3>
-                            <p class="stat-number">$1,240</p>
-                            <p class="stat-label">Total procesado hoy</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="orders-total-count">0</h3>
+                                <p>Total</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="actions-container">
-                    <div class="action-section">
-                        <h3><i class="fas fa-shopping-cart"></i> Pedidos Recientes</h3>
-                        <div class="action-buttons">
-                            <button onclick="showPendingOrders()" class="action-btn primary">
-                                <i class="fas fa-clock"></i> Ver Pendientes
-                            </button>
-                            <button onclick="showInProcessOrders()" class="action-btn secondary">
-                                <i class="fas fa-cog"></i> En Proceso
-                            </button>
-                            <button onclick="showCompletedOrders()" class="action-btn success">
-                                <i class="fas fa-check"></i> Completados
-                            </button>
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-list"></i> Lista de Pedidos</h3>
+                        <select id="orderFilterStatus" class="form-control" style="width: 180px;" onchange="filterOrders()">
+                            <option value="">Todos los estados</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="shipped">Enviados</option>
+                            <option value="delivered">Entregados</option>
+                            <option value="cancelled">Cancelados</option>
+                        </select>
+                    </div>
+                    <div id="orders-list" class="orders-table-container">
+                        <!-- Orders will be loaded dynamically -->
+                        <div class="loading-message">Cargando pedidos...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Detail Modal -->
+            <div id="orderModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 700px;">
+                    <div class="modal-header">
+                        <h2 id="orderModalTitle">Detalles del Pedido</h2>
+                        <span class="modal-close" onclick="closeOrderModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="orderModalBody">
+                        <!-- Order details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tracking Section -->
+            <div id="section-tracking" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Rastreo de Entregas</h1>
+                    <p class="page-subtitle">Gestionar entregas en tiempo real con geolocalización</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tracking-active-count">0</h3>
+                                <p>Entregas Activas</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-shipping-fast"></i>
+                            </div>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tracking-pending-count">0</h3>
+                                <p>Pendientes de Envío</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tracking-completed-count">0</h3>
+                                <p>Completadas Hoy</p>
+                            </div>
+                            <div class="stat-icon" style="background: #f0fdf4; color: #22c55e;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                    <div class="action-section">
-                        <h3><i class="fas fa-plus"></i> Acciones de Pedidos</h3>
-                        <div class="action-buttons">
-                            <button onclick="createNewOrder()" class="action-btn primary">
-                                <i class="fas fa-plus"></i> Nuevo Pedido
-                            </button>
-                            <button onclick="searchOrder()" class="action-btn secondary">
-                                <i class="fas fa-search"></i> Buscar Pedido
-                            </button>
-                            <button onclick="generateOrderReport()" class="action-btn secondary">
-                                <i class="fas fa-chart-bar"></i> Reporte
-                            </button>
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-map-marked-alt"></i> Pedidos con Rastreo</h3>
+                        <select id="trackingFilterStatus" class="form-control" style="width: 200px;" onchange="filterTracking()">
+                            <option value="active">Activos</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="all">Todos</option>
+                        </select>
+                    </div>
+                    <div id="tracking-list" class="tracking-table-container">
+                        <!-- Tracking will be loaded dynamically -->
+                        <div class="loading-message">Cargando información de rastreo...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tracking Modal -->
+            <div id="trackingModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2 id="trackingModalTitle">Iniciar Rastreo</h2>
+                        <span class="modal-close" onclick="closeTrackingModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="trackingModalBody">
+                        <form id="trackingForm">
+                            <input type="hidden" id="trackingOrderId">
+                            
+                            <div class="form-group">
+                                <label for="destinationAddress">
+                                    <i class="fas fa-map-marker-alt"></i> Dirección de Destino *
+                                </label>
+                                <textarea 
+                                    class="form-control" 
+                                    id="destinationAddress" 
+                                    rows="3" 
+                                    placeholder="Calle 100 #15-20, Bogotá, Colombia"
+                                    required
+                                ></textarea>
+                                <small class="form-text text-muted">
+                                    Dirección completa del cliente
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="driverName">
+                                    <i class="fas fa-user"></i> Nombre del Conductor *
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="driverName" 
+                                    placeholder="Juan Pérez"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="driverPhone">
+                                    <i class="fas fa-phone"></i> Teléfono del Conductor *
+                                </label>
+                                <input 
+                                    type="tel" 
+                                    class="form-control" 
+                                    id="driverPhone" 
+                                    placeholder="3001234567"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleInfo">
+                                    <i class="fas fa-motorcycle"></i> Información del Vehículo
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="vehicleInfo" 
+                                    placeholder="Moto - ABC123"
+                                >
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="closeTrackingModal()">
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-play"></i> Iniciar Rastreo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Location Modal -->
+            <div id="updateLocationModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h2>Actualizar Ubicación</h2>
+                        <span class="modal-close" onclick="closeUpdateLocationModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="locationStatus" class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Obteniendo ubicación actual...
+                        </div>
+                        
+                        <div id="locationInfo" style="display: none;">
+                            <div class="form-group">
+                                <label>Latitud:</label>
+                                <input type="text" id="currentLat" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Longitud:</label>
+                                <input type="text" id="currentLng" class="form-control" readonly>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" onclick="closeUpdateLocationModal()">
+                                    Cancelar
+                                </button>
+                                <button class="btn btn-primary" onclick="confirmUpdateLocation()">
+                                    <i class="fas fa-check"></i> Confirmar Ubicación
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -430,255 +681,464 @@
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-boxes"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Total</h3>
-                            <p class="stat-number">892</p>
-                            <p class="stat-label">Productos en stock</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Stock Bajo</h3>
-                            <p class="stat-number">12</p>
-                            <p class="stat-label">Requieren reposición</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="inventory-total-count">0</h3>
+                                <p>Total Productos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-boxes"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-plus-circle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Entradas</h3>
-                            <p class="stat-number">45</p>
-                            <p class="stat-label">Productos ingresados hoy</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="inventory-lowstock-count">0</h3>
+                                <p>Stock Bajo</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff3cd; color: #f59e0b;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-minus-circle"></i>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="inventory-outofstock-count">0</h3>
+                                <p>Sin Stock</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <h3>Salidas</h3>
-                            <p class="stat-number">28</p>
-                            <p class="stat-label">Productos vendidos hoy</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="inventory-totalvalue-count">$0</h3>
+                                <p>Valor Total</p>
+                            </div>
+                            <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="actions-container">
-                    <div class="action-section">
-                        <h3><i class="fas fa-warehouse"></i> Gestión de Stock</h3>
-                        <div class="action-buttons">
-                            <button onclick="updateStock()" class="action-btn primary">
-                                <i class="fas fa-edit"></i> Actualizar Stock
-                            </button>
-                            <button onclick="showLowStock()" class="action-btn warning">
-                                <i class="fas fa-exclamation-triangle"></i> Stock Bajo
-                            </button>
-                            <button onclick="addProduct()" class="action-btn success">
-                                <i class="fas fa-plus"></i> Agregar Producto
-                            </button>
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-list"></i> Inventario de Productos</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="inventoryFilterStock" class="form-control" style="width: 180px;" onchange="filterInventory()">
+                                <option value="">Todos</option>
+                                <option value="in-stock">En Stock</option>
+                                <option value="low-stock">Stock Bajo</option>
+                                <option value="out-of-stock">Sin Stock</option>
+                            </select>
+                            <select id="inventoryFilterCategory" class="form-control" style="width: 180px;" onchange="filterInventory()">
+                                <option value="">Todas las categorías</option>
+                            </select>
                         </div>
                     </div>
+                    <div id="inventory-list" class="inventory-table-container">
+                        <!-- Products will be loaded dynamically -->
+                        <div class="loading-message">Cargando inventario...</div>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="action-section">
-                        <h3><i class="fas fa-search"></i> Búsqueda y Reportes</h3>
-                        <div class="action-buttons">
-                            <button onclick="searchProduct()" class="action-btn secondary">
-                                <i class="fas fa-search"></i> Buscar Producto
-                            </button>
-                            <button onclick="generateInventoryReport()" class="action-btn secondary">
-                                <i class="fas fa-chart-bar"></i> Reporte Inventario
-                            </button>
-                            <button onclick="exportInventory()" class="action-btn secondary">
-                                <i class="fas fa-download"></i> Exportar Excel
-                            </button>
-                        </div>
+            <!-- Product Edit Modal -->
+            <div id="productModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 700px;">
+                    <div class="modal-header">
+                        <h2 id="productModalTitle">Editar Producto</h2>
+                        <span class="modal-close" onclick="closeProductModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="productModalBody">
+                        <!-- Product edit form will be loaded here -->
                     </div>
                 </div>
             </div>
 
             <div id="section-customers" class="content-section" style="display: none;">
                 <div class="page-header">
-                    <h1 class="page-title">Atención al Cliente</h1>
-                    <p class="page-subtitle">Gestionar consultas y soporte</p>
+                    <h1 class="page-title">Gestión de Clientes</h1>
+                    <p class="page-subtitle">Administrar clientes y consultar historial</p>
                 </div>
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Tickets</h3>
-                            <p class="stat-number">15</p>
-                            <p class="stat-label">Tickets abiertos</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Chat</h3>
-                            <p class="stat-number">8</p>
-                            <p class="stat-label">Conversaciones activas</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="customers-total-count">0</h3>
+                                <p>Total Clientes</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-users"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Satisfacción</h3>
-                            <p class="stat-number">4.8</p>
-                            <p class="stat-label">Puntuación promedio</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="customers-active-count">0</h3>
+                                <p>Activos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
+                                <i class="fas fa-user-check"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-clock"></i>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="customers-newmonth-count">0</h3>
+                                <p>Nuevos Este Mes</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <h3>Tiempo</h3>
-                            <p class="stat-number">12m</p>
-                            <p class="stat-label">Respuesta promedio</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="customers-inactive-count">0</h3>
+                                <p>Inactivos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
+                                <i class="fas fa-user-times"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="actions-container">
-                    <div class="action-section">
-                        <h3><i class="fas fa-headset"></i> Centro de Soporte</h3>
-                        <div class="action-buttons">
-                            <button onclick="showTickets()" class="action-btn primary">
-                                <i class="fas fa-ticket-alt"></i> Ver Tickets
-                            </button>
-                            <button onclick="openChat()" class="action-btn success">
-                                <i class="fas fa-comments"></i> Chat en Vivo
-                            </button>
-                            <button onclick="createTicket()" class="action-btn secondary">
-                                <i class="fas fa-plus"></i> Crear Ticket
-                            </button>
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-list"></i> Lista de Clientes</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="customerSearchInput" class="form-control" style="width: 250px;" placeholder="Buscar por nombre o email..." onkeyup="searchCustomers()">
+                            <select id="customerFilterStatus" class="form-control" style="width: 150px;" onchange="filterCustomers()">
+                                <option value="">Todos</option>
+                                <option value="active">Activos</option>
+                                <option value="inactive">Inactivos</option>
+                            </select>
                         </div>
                     </div>
+                    <div id="customers-list" class="customers-table-container">
+                        <!-- Customers will be loaded dynamically -->
+                        <div class="loading-message">Cargando clientes...</div>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="action-section">
-                        <h3><i class="fas fa-question-circle"></i> Recursos de Ayuda</h3>
-                        <div class="action-buttons">
-                            <button onclick="showFAQ()" class="action-btn primary">
-                                <i class="fas fa-question"></i> Preguntas Frecuentes
-                            </button>
-                            <button onclick="showGuides()" class="action-btn secondary">
-                                <i class="fas fa-book"></i> Guías de Usuario
-                            </button>
-                            <button onclick="contactSupport()" class="action-btn warning">
-                                <i class="fas fa-phone"></i> Contactar Soporte
-                            </button>
+            <!-- Customer Detail Modal -->
+            <div id="customerModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                        <h2 id="customerModalTitle">Detalles del Cliente</h2>
+                        <span class="modal-close" onclick="closeCustomerModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="customerModalBody">
+                        <!-- Customer details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-tickets" class="content-section" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Atención al Cliente</h1>
+                    <p class="page-subtitle">Gestionar tickets y consultas de clientes</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-total-count">0</h3>
+                                <p>Total Tickets</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
                         </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-open-count">0</h3>
+                                <p>Abiertos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff3cd; color: #f59e0b;">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-inprogress-count">0</h3>
+                                <p>En Proceso</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #3b82f6;">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="tickets-resolved-count">0</h3>
+                                <p>Resueltos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-list"></i> Tickets de Clientes</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="ticketsFilterStatus" class="form-control" style="width: 180px;" onchange="filterTickets()">
+                                <option value="">Todos los estados</option>
+                                <option value="open">Abiertos</option>
+                                <option value="in_progress">En Proceso</option>
+                                <option value="resolved">Resueltos</option>
+                                <option value="closed">Cerrados</option>
+                            </select>
+                            <select id="ticketsFilterCategory" class="form-control" style="width: 180px;" onchange="filterTickets()">
+                                <option value="">Todas las categorías</option>
+                                <option value="consulta">Consulta</option>
+                                <option value="soporte_tecnico">Soporte Técnico</option>
+                                <option value="reclamo">Reclamo</option>
+                                <option value="sugerencia">Sugerencia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="tickets-list" class="tickets-table-container">
+                        <!-- Tickets will be loaded dynamically -->
+                        <div class="loading-message">Cargando tickets...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ticket Chat Modal -->
+            <div id="ticketModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                        <h2 id="ticketModalTitle">Chat del Ticket</h2>
+                        <span class="modal-close" onclick="closeTicketModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="ticketModalBody">
+                        <!-- Ticket chat will be loaded here -->
                     </div>
                 </div>
             </div>
 
             <div id="section-reports" class="content-section" style="display: none;">
                 <div class="page-header">
-                    <h1 class="page-title">Reportes</h1>
-                    <p class="page-subtitle">Generar reportes de actividad</p>
+                    <h1 class="page-title">Reportes de Ventas</h1>
+                    <p class="page-subtitle">Análisis y estadísticas de ventas</p>
                 </div>
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Ventas</h3>
-                            <p class="stat-number">$2,450</p>
-                            <p class="stat-label">Total hoy</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Pedidos</h3>
-                            <p class="stat-number">47</p>
-                            <p class="stat-label">Procesados hoy</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="reports-totalsales">$0</h3>
+                                <p>Ventas Totales</p>
+                            </div>
+                            <div class="stat-icon" style="background: #d1fae5; color: #10b981;">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Clientes</h3>
-                            <p class="stat-number">23</p>
-                            <p class="stat-label">Atendidos hoy</p>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="reports-totalorders">0</h3>
+                                <p>Total Pedidos</p>
+                            </div>
+                            <div class="stat-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-percentage"></i>
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="reports-avgorder">$0</h3>
+                                <p>Ticket Promedio</p>
+                            </div>
+                            <div class="stat-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <h3>Eficiencia</h3>
-                            <p class="stat-number">95%</p>
-                            <p class="stat-label">Tareas completadas</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-content">
+                                <h3 id="reports-completed">0</h3>
+                                <p>Completados</p>
+                            </div>
+                            <div class="stat-icon" style="background: #d1fae5; color: #22c55e;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="actions-container">
-                    <div class="action-section">
-                        <h3><i class="fas fa-chart-bar"></i> Reportes de Ventas</h3>
-                        <div class="action-buttons">
-                            <button onclick="generateDailyReport()" class="action-btn primary">
-                                <i class="fas fa-calendar-day"></i> Reporte Diario
-                            </button>
-                            <button onclick="generateWeeklyReport()" class="action-btn secondary">
-                                <i class="fas fa-calendar-week"></i> Reporte Semanal
-                            </button>
-                            <button onclick="generateMonthlyReport()" class="action-btn secondary">
-                                <i class="fas fa-calendar-alt"></i> Reporte Mensual
-                            </button>
-                        </div>
+                <div class="action-section" style="margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-filter"></i> Filtro de Período</h3>
+                        <select id="reportsPeriodFilter" class="form-control" style="width: 200px;" onchange="loadReports()">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30" selected>Últimos 30 días</option>
+                            <option value="60">Últimos 60 días</option>
+                            <option value="90">Últimos 90 días</option>
+                        </select>
                     </div>
 
-                    <div class="action-section">
-                        <h3><i class="fas fa-download"></i> Exportar Datos</h3>
-                        <div class="action-buttons">
-                            <button onclick="exportSalesData()" class="action-btn success">
-                                <i class="fas fa-file-excel"></i> Ventas Excel
-                            </button>
-                            <button onclick="exportInventoryData()" class="action-btn success">
-                                <i class="fas fa-file-csv"></i> Inventario CSV
-                            </button>
-                            <button onclick="exportCustomerData()" class="action-btn success">
-                                <i class="fas fa-file-pdf"></i> Clientes PDF
-                            </button>
+                    <div class="reports-container">
+                        <div class="report-section">
+                            <h4><i class="fas fa-chart-bar"></i> Productos Más Vendidos</h4>
+                            <div id="top-products-list">
+                                <div class="loading-message">Cargando datos...</div>
+                            </div>
+                        </div>
+
+                        <div class="report-section">
+                            <h4><i class="fas fa-chart-area"></i> Tendencia de Ventas</h4>
+                            <div id="sales-timeline">
+                                <canvas id="salesChart" style="max-height: 300px;"></canvas>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-                <div class="action-section">
-                    <p>Reportes - En desarrollo</p>
                 </div>
             </div>
 
             <div id="section-support" class="content-section" style="display: none;">
                 <div class="page-header">
-                    <h1 class="page-title">Soporte</h1>
-                    <p class="page-subtitle">Ayuda y documentación</p>
+                    <h1 class="page-title">Centro de Soporte</h1>
+                    <p class="page-subtitle">Recursos de ayuda y contacto</p>
                 </div>
-                <div class="action-section">
-                    <p>Soporte - En desarrollo</p>
+
+                <div class="support-container">
+                    <div class="support-section">
+                        <div class="support-card">
+                            <div class="support-icon" style="background: #e6f7ff; color: #1890ff;">
+                                <i class="fas fa-question-circle fa-3x"></i>
+                            </div>
+                            <h3>Preguntas Frecuentes</h3>
+                            <p>Encuentra respuestas rápidas a las preguntas más comunes</p>
+                            <button class="btn btn-primary" onclick="showFAQ()">
+                                <i class="fas fa-search"></i> Ver FAQs
+                            </button>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-icon" style="background: #d1fae5; color: #10b981;">
+                                <i class="fas fa-book fa-3x"></i>
+                            </div>
+                            <h3>Guías de Usuario</h3>
+                            <p>Manuales y tutoriales para usar el sistema</p>
+                            <button class="btn btn-success" onclick="showGuides()">
+                                <i class="fas fa-book-open"></i> Ver Guías
+                            </button>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-icon" style="background: #fff0eb; color: #ff6b35;">
+                                <i class="fas fa-headset fa-3x"></i>
+                            </div>
+                            <h3>Contactar Soporte</h3>
+                            <p>Obtén ayuda directa de nuestro equipo</p>
+                            <button class="btn btn-warning" onclick="contactSupport()">
+                                <i class="fas fa-phone"></i> Contactar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="faq-section" id="faqContent" style="display: none; margin-top: 30px;">
+                        <h3 style="color: #ff6b35; margin-bottom: 20px;">
+                            <i class="fas fa-question-circle"></i> Preguntas Frecuentes
+                        </h3>
+                        <div class="faq-list">
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo actualizo el stock de un producto?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    Ve a la sección de Inventario, busca el producto y haz clic en el botón de actualizar stock (ícono de caja). Ingresa la nueva cantidad y guarda.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo cambio el estado de un pedido?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    En la sección de Pedidos, localiza el pedido y usa los botones de acción. Puedes marcarlo como enviado (camión) o entregado (check).
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo veo el historial de pedidos de un cliente?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    Ve a la sección de Clientes, busca al cliente y haz clic en el botón de carrito. Se abrirá un modal con todo su historial de compras.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Puedo filtrar productos por categoría?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    Sí, en la sección de Inventario hay un filtro de categoría que se genera automáticamente según los productos disponibles.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFAQ(this)">
+                                    <i class="fas fa-chevron-right"></i>
+                                    <strong>¿Cómo genero reportes de ventas?</strong>
+                                </div>
+                                <div class="faq-answer">
+                                    En la sección de Reportes puedes seleccionar diferentes períodos (7, 30, 60 o 90 días) para ver estadísticas de ventas, productos más vendidos y tendencias.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-section" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="color: #333; margin-bottom: 15px;">
+                            <i class="fas fa-info-circle"></i> Información de Contacto
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div>
+                                <strong><i class="fas fa-envelope"></i> Email:</strong>
+                                <p>soporte@ferrejunior.com</p>
+                            </div>
+                            <div>
+                                <strong><i class="fas fa-phone"></i> Teléfono:</strong>
+                                <p>+57 (604) 123-4567</p>
+                            </div>
+                            <div>
+                                <strong><i class="fas fa-clock"></i> Horario:</strong>
+                                <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -689,6 +1149,8 @@
     <!-- Bootstrap JavaScript -->
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/employee_dashboard.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/employee_dashboard.js') }}?v=2"></script>
+    <script src="{{ url_for('static', filename='js/employee_tracking.js') }}"></script>
 </body>
 </html>

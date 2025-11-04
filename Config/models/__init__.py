@@ -7,5 +7,7 @@ from .task import Task
 from .order_item import OrderItem
 from .address import Address
 from .cart import Cart, CartItem
+from .ticket import Ticket, TicketMessage
+from .order_tracking import OrderStatusHistory, DeliveryTracking, OrderNotification
 
-__all__ = ['User', 'Product', 'Order', 'Category', 'Task', 'OrderItem', 'Address', 'Cart', 'CartItem']
+__all__ = ['User', 'Product', 'Order', 'Category', 'Task', 'OrderItem', 'Address', 'Cart', 'CartItem', 'Ticket', 'TicketMessage', 'OrderStatusHistory', 'DeliveryTracking', 'OrderNotification']

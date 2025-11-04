@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Perfil de Administrador - FerreJunior</title>
     
     <!-- CSS -->
@@ -37,6 +40,26 @@
             z-index: 1000;
             box-shadow: 4px 0 15px rgba(0,0,0,0.1);
             border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Estilo de scrollbar para el sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .sidebar-header {
@@ -757,28 +780,28 @@
             <div class="nav-section">
                 <div class="section-title">Gestión</div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ url_for('admin.admin_dashboard') }}#users" class="nav-link">
                         <i class="fas fa-users"></i>
                         <span>Usuarios</span>
-                        <span class="badge">12</span>
+                        <span class="badge" id="users-badge">0</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ url_for('admin.admin_dashboard') }}#products" class="nav-link">
                         <i class="fas fa-box"></i>
                         <span>Productos</span>
-                        <span class="badge">89</span>
+                        <span class="badge" id="products-badge">0</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ url_for('admin.admin_dashboard') }}#orders" class="nav-link">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Pedidos</span>
-                        <span class="badge">5</span>
+                        <span class="badge" id="orders-badge">0</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ url_for('admin.admin_dashboard') }}#inventory" class="nav-link">
                         <i class="fas fa-warehouse"></i>
                         <span>Inventario</span>
                     </a>
@@ -797,6 +820,13 @@
                     <a href="#" class="nav-link">
                         <i class="fas fa-file-alt"></i>
                         <span>Reportes</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('admin.admin_dashboard') }}#tickets" class="nav-link">
+                        <i class="fas fa-headset"></i>
+                        <span>Atención al Cliente</span>
+                        <span class="badge" id="tickets-badge">0</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -1161,7 +1191,57 @@
                     this.style.transform = 'translateY(0)';
                 });
             });
+            
+            // Update sidebar badges
+            updateSidebarBadges();
         });
+        
+        // Update sidebar badges with real data
+        async function updateSidebarBadges() {
+            try {
+                // Fetch users count
+                const usersResponse = await fetch('/admin/users-data');
+                const usersData = await usersResponse.json();
+                if (usersData.success) {
+                    const usersBadge = document.getElementById('users-badge');
+                    if (usersBadge) {
+                        usersBadge.textContent = usersData.users.length;
+                    }
+                }
+
+                // Fetch products count
+                const productsResponse = await fetch('/admin/products-data');
+                const productsData = await productsResponse.json();
+                if (productsData.success) {
+                    const productsBadge = document.getElementById('products-badge');
+                    if (productsBadge) {
+                        productsBadge.textContent = productsData.products.length;
+                    }
+                }
+
+                // Fetch orders count
+                const ordersResponse = await fetch('/admin/orders-data');
+                const ordersData = await ordersResponse.json();
+                if (ordersData.success) {
+                    const ordersBadge = document.getElementById('orders-badge');
+                    if (ordersBadge) {
+                        ordersBadge.textContent = ordersData.orders.length;
+                    }
+                }
+
+                // Fetch tickets count
+                const ticketsResponse = await fetch('/employee/tickets-data');
+                const ticketsData = await ticketsResponse.json();
+                if (ticketsData.success) {
+                    const ticketsBadge = document.getElementById('tickets-badge');
+                    if (ticketsBadge) {
+                        ticketsBadge.textContent = ticketsData.stats.open_tickets || 0;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating sidebar badges:', error);
+            }
+        }
     </script>
 
     <!-- Password Change Modal -->

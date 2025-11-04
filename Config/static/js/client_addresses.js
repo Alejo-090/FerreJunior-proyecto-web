@@ -1,6 +1,12 @@
 let addresses = [];
 let editingAddress = null;
 
+// Get CSRF Token
+function getCSRFToken() {
+    const token = document.querySelector('meta[name="csrf-token"]');
+    return token ? token.getAttribute('content') : '';
+}
+
 // User menu toggle
 function toggleUserMenu() {
     const menu = document.getElementById('userMenu');
@@ -53,8 +59,8 @@ function renderAddresses() {
             <div class="address-card${isDefault ? ' default' : ''}">
                 <div class="address-header">
                     <div class="address-type">
-                        <i class="fas fa-${getTypeIcon(address.type)}"></i>
-                        ${typeText}
+                        <i class="fas fa-map-marker-alt"></i>
+                        Dirección
                         ${isDefault ? '<span class="default-badge">Predeterminada</span>' : ''}
                     </div>
                     <div class="address-actions">
@@ -72,12 +78,11 @@ function renderAddresses() {
                     </div>
                 </div>
                 <div class="address-content">
-                    <div class="address-line"><strong>${address.recipient_name}</strong></div>
+                    <div class="address-line"><strong>${address.name}</strong></div>
                     <div class="address-line">${address.street}</div>
-                    <div class="address-line">${address.city}, ${address.state} ${address.postal_code}</div>
+                    <div class="address-line">${address.city}, ${address.state} ${address.zip_code}</div>
                     <div class="address-line">${address.country}</div>
                     ${address.phone ? `<div class="address-line"><i class="fas fa-phone"></i> ${address.phone}</div>` : ''}
-                    ${address.delivery_instructions ? `<div class="address-line"><i class="fas fa-info-circle"></i> ${address.delivery_instructions}</div>` : ''}
                 </div>
             </div>
         `;
@@ -131,17 +136,15 @@ function editAddress(id) {
     document.getElementById('modalTitle').textContent = 'Editar Dirección';
     document.getElementById('submitBtn').textContent = 'Actualizar Dirección';
 
-    // Fill form
+    // Fill form with backend data
     document.getElementById('addressId').value = address.id;
-    document.getElementById('addressType').value = address.type;
-    document.getElementById('recipientName').value = address.recipient_name;
+    document.getElementById('recipientName').value = address.name;
     document.getElementById('phone').value = address.phone || '';
     document.getElementById('street').value = address.street;
     document.getElementById('city').value = address.city;
     document.getElementById('state').value = address.state;
-    document.getElementById('postalCode').value = address.postal_code;
+    document.getElementById('postalCode').value = address.zip_code;
     document.getElementById('country').value = address.country;
-    document.getElementById('instructions').value = address.delivery_instructions || '';
     document.getElementById('isDefault').checked = address.is_default;
 
     document.getElementById('addressModal').classList.add('show');
@@ -155,11 +158,26 @@ function closeModal() {
 
 function setAsDefault(id) {
     if (confirm('¿Quieres establecer esta dirección como predeterminada?')) {
-        fetch(`/client/addresses/${id}/set-default`, {
-            method: 'POST',
+        const address = addresses.find(a => a.id === id);
+        if (!address) return;
+
+        // Update the address with is_default set to true
+        fetch(`/client/address/${id}`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-            }
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                name: address.name,
+                street: address.street,
+                city: address.city,
+                state: address.state,
+                zip_code: address.zip_code,
+                country: address.country,
+                phone: address.phone,
+                is_default: true
+            })
         })
         .then(response => response.json())
         .then(data => {
@@ -179,8 +197,11 @@ function setAsDefault(id) {
 
 function deleteAddress(id) {
     if (confirm('¿Estás seguro de que quieres eliminar esta dirección?')) {
-        fetch(`/client/addresses/${id}`, {
-            method: 'DELETE'
+        fetch(`/client/address/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
         })
         .then(response => response.json())
         .then(data => {
@@ -245,24 +266,41 @@ document.getElementById('addressForm').addEventListener('submit', function(e) {
     submitBtn.textContent = 'Guardando...';
 
     const formData = new FormData(this);
-    const addressData = Object.fromEntries(formData.entries());
+    const formFields = Object.fromEntries(formData.entries());
 
-    // Convert checkbox to boolean
-    addressData.is_default = formData.has('is_default');
+    // Map form fields to backend expected fields
+    const addressData = {
+        name: formFields.recipient_name,
+        street: formFields.street,
+        city: formFields.city,
+        state: formFields.state,
+        zip_code: formFields.postal_code,
+        country: formFields.country,
+        phone: formFields.phone,
+        is_default: formData.has('is_default')
+    };
 
-    const isEditing = addressData.id;
-    const url = isEditing ? `/client/addresses/${addressData.id}` : '/client/addresses';
+    console.log('Form fields:', formFields);
+    console.log('Address data to send:', addressData);
+
+    const isEditing = formFields.id;
+    const url = isEditing ? `/client/address/${formFields.id}` : '/client/address';
     const method = isEditing ? 'PUT' : 'POST';
 
     fetch(url, {
         method: method,
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
         },
         body: JSON.stringify(addressData)
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             closeModal();
             loadAddresses();

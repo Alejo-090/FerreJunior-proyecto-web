@@ -8,7 +8,7 @@ body {
     background-color: #f8fafc;
     font-family: 'Inter', sans-serif;
     color: #1e293b;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 /* Header */
@@ -17,15 +17,18 @@ body {
     border-bottom: 4px solid #ff6b35;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     padding: 12px 0;
+    position: relative;
+    z-index: 100;
 }
 
 .navbar-content {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 0 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 .logo {
@@ -43,15 +46,20 @@ body {
 
 .user-menu {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .user-menu-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;
+    padding: 8px 12px;
     border-radius: 8px;
     color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .user-menu-btn:hover {
@@ -59,34 +67,61 @@ body {
 }
 
 .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
+    position: fixed;
     background: white;
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     border: 1px solid #e2e8f0;
-    min-width: 180px;
-    z-index: 1000;
+    min-width: 220px;
+    max-width: 280px;
+    z-index: 9999;
     overflow: hidden;
     display: none;
+    transform-origin: top right;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu.show {
+    display: block;
 }
 
 .dropdown-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
+    gap: 12px;
+    padding: 14px 18px;
     color: #475569;
     text-decoration: none;
     font-size: 14px;
-    transition: background 0.3s;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.dropdown-item i {
+    width: 18px;
+    text-align: center;
+    color: #64748b;
 }
 
 .dropdown-item:hover {
     background: #f8fafc;
-    color: #1e293b;
+    color: #ff6b35;
     text-decoration: none;
+}
+
+.dropdown-item:hover i {
+    color: #ff6b35;
 }
 
 /* Dashboard Content */

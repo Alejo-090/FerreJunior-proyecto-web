@@ -6,3 +6,4 @@ werkzeug
 Flask-Login
 pymysql
 Flask-WTF
+requests

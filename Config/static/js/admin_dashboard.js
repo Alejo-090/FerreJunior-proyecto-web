@@ -1,12 +1,22 @@
+console.log('admin_dashboard.js loaded - version 3');
+
 // Section navigation with data loading
 function showSection(sectionName) {
+    console.log('Showing section:', sectionName);
+    
     // Hide all sections
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
 
     // Show selected section
-    document.getElementById('section-' + sectionName).style.display = 'block';
+    const targetSection = document.getElementById('section-' + sectionName);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+        console.log('Section found and displayed:', sectionName);
+    } else {
+        console.error('Section not found:', 'section-' + sectionName);
+    }
 
     // Update active nav link
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -26,10 +36,17 @@ function showSection(sectionName) {
 
 // Load data for sections that need it
 function loadSectionData(sectionName) {
-    if (sectionName === 'products') {
+    if (sectionName === 'users') {
+        loadUsers();
+    } else if (sectionName === 'products') {
         loadProducts();
     } else if (sectionName === 'orders') {
         loadOrders();
+    } else if (sectionName === 'analytics') {
+        loadAnalytics();
+    } else if (sectionName === 'tickets') {
+        loadTickets();
+        startTicketsPolling();
     }
     // No auto-load for main sections, only when buttons are clicked
 }
@@ -44,6 +61,7 @@ function getSectionTitle(sectionName) {
         'inventory': 'Inventario',
         'analytics': 'Analytics',
         'reports': 'Reportes',
+        'tickets': 'Atención al Cliente',
         'settings': 'Configuración',
         'support': 'Soporte',
         'export-users': 'Exportar Usuarios',
@@ -994,8 +1012,18 @@ function adjustStock(productId, productName, currentStock) {
 }
 
 function exportProducts() {
-    // For now, just show an alert. In a real implementation, you'd create an export endpoint
-    alert('Funcionalidad de exportación de productos próximamente disponible');
+    // Crear un enlace temporal para descargar el archivo
+    const link = document.createElement('a');
+    link.href = '/admin/products/export';
+    link.download = 'productos.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Mostrar mensaje de confirmación
+    setTimeout(() => {
+        alert('¡Exportación de productos iniciada! El archivo se descargará automáticamente.');
+    }, 100);
 }
 
 function updateDashboardStats() {
@@ -1519,15 +1547,25 @@ function submitOrderStatusForm(event) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
     submitBtn.disabled = true;
 
+    // Obtener CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    console.log('CSRF Token:', csrfToken);
+    console.log('Order ID:', orderId, 'New Status:', newStatus);
+
     fetch(`/admin/order/${orderId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({ status: newStatus })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             alert(data.message);
             // Reload order details
@@ -1729,3 +1767,1030 @@ function renderOrdersList(data) {
 
     content.innerHTML = html;
 }
+
+// ==================== USER MANAGEMENT FUNCTIONS ====================
+
+function loadUsers() {
+    const content = document.getElementById('users-list-content');
+    content.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando usuarios...</div>';
+
+    fetch('/admin/users-data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderUsersList(data.users);
+            } else {
+                content.innerHTML = `<div class="alert alert-danger">Error al cargar usuarios: ${data.error}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+            content.innerHTML = `<div class="alert alert-danger">Error al cargar usuarios: ${error.message}</div>`;
+        });
+}
+
+function renderUsersList(users) {
+    const content = document.getElementById('users-list-content');
+    
+    if (!users || users.length === 0) {
+        content.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No hay usuarios registrados.
+            </div>
+        `;
+        return;
+    }
+
+    const roleLabels = {
+        'admin': 'Administrador',
+        'employee': 'Empleado',
+        'client': 'Cliente'
+    };
+
+    const roleColors = {
+        'admin': 'danger',
+        'employee': 'warning',
+        'client': 'info'
+    };
+
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Fecha Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    users.forEach(user => {
+        const roleBadge = roleColors[user.role] || 'secondary';
+        const roleLabel = roleLabels[user.role] || user.role;
+        const statusBadge = user.is_active ? 'success' : 'secondary';
+        const statusLabel = user.is_active ? 'Activo' : 'Inactivo';
+        
+        html += `
+            <tr>
+                <td>${user.id}</td>
+                <td><strong>${user.name}</strong></td>
+                <td>${user.email}</td>
+                <td><span class="badge bg-${roleBadge}">${roleLabel}</span></td>
+                <td>${user.phone || 'N/A'}</td>
+                <td><span class="badge bg-${statusBadge}">${statusLabel}</span></td>
+                <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES') : 'N/A'}</td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="editUser(${user.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteUser(${user.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    content.innerHTML = html;
+}
+
+function submitUserForm(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const userId = formData.get('userId');
+    const userData = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        role: formData.get('role'),
+        phone: formData.get('phone') || null,
+        is_active: formData.get('is_active') === 'on'
+    };
+
+    const password = formData.get('password');
+    if (password && password.trim() !== '') {
+        userData.password = password;
+    }
+
+    const submitBtn = document.getElementById('userSubmitBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class=\"fas fa-spinner fa-spin\"></i> Guardando...';
+    submitBtn.disabled = true;
+
+    const csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content');
+
+    const url = userId ? `/admin/user/${userId}` : '/admin/user/create';
+    const method = userId ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeModal('userModal');
+            loadUsers();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving user:', error);
+        alert('Error al guardar el usuario');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function editUser(userId) {
+    fetch(`/admin/user/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const user = data.user;
+                document.getElementById('userId').value = user.id;
+                document.getElementById('userName').value = user.name;
+                document.getElementById('userEmail').value = user.email;
+                document.getElementById('userRole').value = user.role;
+                document.getElementById('userPhone').value = user.phone || '';
+                document.getElementById('userActive').checked = user.is_active;
+                document.getElementById('userPassword').value = '';
+                document.getElementById('userPassword').required = false;
+                document.getElementById('userModalTitle').textContent = 'Editar Usuario';
+                openModal('userModal');
+            } else {
+                alert('Error al cargar datos del usuario: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user:', error);
+            alert('Error al cargar datos del usuario');
+        });
+}
+
+function deleteUser(userId) {
+    if (!confirm('�Est� seguro de eliminar este usuario? Esta acci�n no se puede deshacer.')) {
+        return;
+    }
+
+    const csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content');
+
+    fetch(`/admin/user/${userId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadUsers();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting user:', error);
+        alert('Error al eliminar el usuario');
+    });
+}
+
+function openUserModalForNew() {
+    // Limpiar formulario
+    document.getElementById('userForm').reset();
+    document.getElementById('userId').value = '';
+    document.getElementById('userPassword').required = true;
+    document.getElementById('userModalTitle').textContent = 'Crear Usuario';
+    // Abrir modal
+    openModal('userModal');
+}
+
+// Analytics Functions
+function loadAnalytics() {
+    fetch('/admin/analytics-data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderAnalytics(data.analytics);
+            } else {
+                console.error('Error loading analytics:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching analytics:', error);
+        });
+}
+
+function renderAnalytics(analytics) {
+    // Update stats cards
+    document.getElementById('total-orders').textContent = analytics.total_orders || 0;
+    document.getElementById('total-revenue').textContent = '$' + (analytics.total_revenue || 0).toLocaleString('es-CO');
+    document.getElementById('total-customers').textContent = analytics.total_customers || 0;
+    document.getElementById('total-products').textContent = analytics.total_products || 0;
+    
+    // Update changes (últimos 30 días)
+    document.getElementById('orders-change').textContent = '+' + (analytics.orders_change || 0) + ' este mes';
+    document.getElementById('revenue-change').textContent = '+$' + (analytics.revenue_change || 0).toLocaleString('es-CO') + ' este mes';
+    document.getElementById('customers-change').textContent = '+' + (analytics.customers_change || 0) + ' este mes';
+    document.getElementById('products-change').textContent = (analytics.products_change || 0) + ' en stock';
+    
+    // Render top products
+    renderTopProducts(analytics.top_products || []);
+    
+    // Render orders by status
+    renderOrdersByStatus(analytics.orders_by_status || {});
+    
+    // Render recent orders
+    renderRecentOrders(analytics.recent_orders || []);
+}
+
+function renderTopProducts(products) {
+    const container = document.getElementById('top-products-list');
+    
+    if (!products || products.length === 0) {
+        container.innerHTML = '<p class="loading-text">No hay datos de productos vendidos</p>';
+        return;
+    }
+    
+    container.innerHTML = products.map(product => `
+        <div class="product-item">
+            <span class="product-name">${product.name}</span>
+            <span class="product-sales">${product.quantity} vendidos</span>
+        </div>
+    `).join('');
+}
+
+function renderOrdersByStatus(statusData) {
+    const container = document.getElementById('orders-by-status');
+    
+    const statuses = {
+        'pendiente': { label: 'Pendiente', class: 'pending' },
+        'procesando': { label: 'Procesando', class: 'processing' },
+        'completado': { label: 'Completado', class: 'completed' },
+        'cancelado': { label: 'Cancelado', class: 'cancelled' }
+    };
+    
+    const total = Object.values(statusData).reduce((sum, count) => sum + count, 0);
+    
+    if (total === 0) {
+        container.innerHTML = '<p class="loading-text">No hay pedidos registrados</p>';
+        return;
+    }
+    
+    container.innerHTML = Object.entries(statuses).map(([key, status]) => {
+        const count = statusData[key] || 0;
+        const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+        
+        return `
+            <div class="status-item">
+                <span class="status-label">${status.label}</span>
+                <div class="status-bar">
+                    <div class="status-fill ${status.class}" style="width: ${percentage}%">
+                        ${percentage}%
+                    </div>
+                </div>
+                <span class="status-count">${count}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderRecentOrders(orders) {
+    const container = document.getElementById('recent-orders-list');
+    
+    if (!orders || orders.length === 0) {
+        container.innerHTML = '<p class="loading-text">No hay pedidos recientes</p>';
+        return;
+    }
+    
+    container.innerHTML = orders.slice(0, 5).map(order => `
+        <div class="activity-item">
+            <div class="activity-info">
+                <div class="activity-user">Pedido #${order.id} - ${order.user_name}</div>
+                <div class="activity-details">${order.items_count} productos - $${order.total.toLocaleString('es-CO')}</div>
+            </div>
+            <div class="activity-time">${formatDate(order.created_at)}</div>
+        </div>
+    `).join('');
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    if (diffHours < 24) return `Hace ${diffHours} h`;
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+    
+    return date.toLocaleDateString('es-CO');
+}
+
+// Settings Functions
+function saveGeneralSettings() {
+    const settings = {
+        site_name: document.getElementById('siteName').value,
+        site_email: document.getElementById('siteEmail').value,
+        site_phone: document.getElementById('sitePhone').value,
+        site_address: document.getElementById('siteAddress').value
+    };
+    
+    saveSettings('general', settings);
+}
+
+function saveShippingSettings() {
+    const settings = {
+        free_shipping_min: parseFloat(document.getElementById('freeShippingMin').value),
+        standard_shipping_cost: parseFloat(document.getElementById('standardShippingCost').value),
+        delivery_days: parseInt(document.getElementById('deliveryDays').value)
+    };
+    
+    saveSettings('shipping', settings);
+}
+
+function saveStockSettings() {
+    const settings = {
+        low_stock_threshold: parseInt(document.getElementById('lowStockThreshold').value),
+        email_low_stock: document.getElementById('emailLowStock').checked
+    };
+    
+    saveSettings('stock', settings);
+}
+
+function saveTaxSettings() {
+    const settings = {
+        tax_rate: parseFloat(document.getElementById('taxRate').value),
+        tax_included: document.getElementById('taxIncluded').checked
+    };
+    
+    saveSettings('tax', settings);
+}
+
+function saveNotificationSettings() {
+    const settings = {
+        notify_new_order: document.getElementById('notifyNewOrder').checked,
+        notify_low_stock: document.getElementById('notifyLowStock').checked,
+        notify_new_user: document.getElementById('notifyNewUser').checked
+    };
+    
+    saveSettings('notifications', settings);
+}
+
+function saveSettings(category, settings) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch('/admin/settings/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            category: category,
+            settings: settings
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Configuración guardada exitosamente');
+        } else {
+            alert('Error al guardar: ' + (data.error || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error saving settings:', error);
+        alert('Error al guardar la configuración');
+    });
+}
+
+function clearCache() {
+    if (!confirm('¿Está seguro de limpiar el caché del sistema?')) {
+        return;
+    }
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch('/admin/maintenance/clear-cache', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Caché limpiado exitosamente');
+        } else {
+            alert('Error: ' + (data.error || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error clearing cache:', error);
+        alert('Error al limpiar el caché');
+    });
+}
+
+function exportDatabase() {
+    alert('Iniciando exportación de la base de datos...');
+    window.location.href = '/admin/maintenance/export-database';
+}
+
+function viewLogs() {
+    window.open('/admin/maintenance/logs', '_blank');
+}
+
+// ============================
+// TICKETS MANAGEMENT FUNCTIONS
+// ============================
+
+let allTickets = [];
+let currentTicketId = null;
+let lastMessageCount = 0;
+let chatPollingInterval = null;
+let ticketsPollingInterval = null;
+
+// Load tickets data
+async function loadTickets(silent = false) {
+    try {
+        const response = await fetch('/employee/tickets-data', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            allTickets = data.tickets;
+            updateTicketStats(data.stats);
+            updateTicketList(allTickets);
+            updateTicketsBadge(data.stats.open_tickets);
+        } else if (!silent) {
+            showError('Error al cargar tickets: ' + (data.message || 'Error desconocido'));
+        }
+    } catch (error) {
+        console.error('Error loading tickets:', error);
+        if (!silent) {
+            showError('Error al cargar los tickets');
+        }
+    }
+}
+
+// Update ticket stats
+function updateTicketStats(stats) {
+    document.getElementById('tickets-total-count').textContent = stats.total_tickets || 0;
+    document.getElementById('tickets-open-count').textContent = stats.open_tickets || 0;
+    document.getElementById('tickets-inprogress-count').textContent = stats.in_progress || 0;
+    document.getElementById('tickets-resolved-count').textContent = stats.resolved || 0;
+}
+
+// Update tickets badge in navigation
+function updateTicketsBadge(count) {
+    const badge = document.getElementById('tickets-badge');
+    if (badge) {
+        badge.textContent = count || 0;
+        badge.style.display = count > 0 ? 'inline' : 'none';
+    }
+}
+
+// Update ticket list
+function updateTicketList(tickets) {
+    const listContainer = document.getElementById('tickets-list');
+    
+    if (!tickets || tickets.length === 0) {
+        listContainer.innerHTML = '<div class="no-data-message"><i class="fas fa-inbox"></i><p>No hay tickets disponibles</p></div>';
+        return;
+    }
+
+    let html = '<table class="tickets-table"><thead><tr>';
+    html += '<th>ID</th>';
+    html += '<th>Cliente</th>';
+    html += '<th>Asunto</th>';
+    html += '<th>Categoria</th>';
+    html += '<th>Prioridad</th>';
+    html += '<th>Estado</th>';
+    html += '<th>Asignado a</th>';
+    html += '<th>Fecha</th>';
+    html += '<th>Acciones</th>';
+    html += '</tr></thead><tbody>';
+
+    tickets.forEach(ticket => {
+        html += '<tr>';
+        html += `<td>#${ticket.id}</td>`;
+        html += `<td>${ticket.user_name || 'N/A'}</td>`;
+        html += `<td>${ticket.subject}</td>`;
+        html += `<td>${getCategoryLabel(ticket.category)}</td>`;
+        html += `<td>${getPriorityBadge(ticket.priority)}</td>`;
+        html += `<td>${getStatusBadge(ticket.status)}</td>`;
+        html += `<td>${ticket.assigned_employee_name || '<em>Sin asignar</em>'}</td>`;
+        html += `<td>${formatDateTime(ticket.created_at)}</td>`;
+        html += `<td class="ticket-actions">`;
+        html += `<button class="btn-icon" onclick="viewTicketChat(${ticket.id})" title="Ver chat"><i class="fas fa-comments"></i></button>`;
+        html += `</td>`;
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    listContainer.innerHTML = html;
+}
+
+// Filter tickets
+function filterTickets() {
+    const statusFilter = document.getElementById('ticketsFilterStatus').value;
+    const categoryFilter = document.getElementById('ticketsFilterCategory').value;
+
+    let filtered = allTickets;
+
+    if (statusFilter) {
+        filtered = filtered.filter(t => t.status === statusFilter);
+    }
+
+    if (categoryFilter) {
+        filtered = filtered.filter(t => t.category === categoryFilter);
+    }
+
+    updateTicketList(filtered);
+}
+
+// View ticket chat
+async function viewTicketChat(ticketId) {
+    currentTicketId = ticketId;
+    lastMessageCount = 0; // Reset counter
+    
+    try {
+        const response = await fetch(`/employee/ticket/${ticketId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showTicketChatModal(data.ticket, data.messages);
+            // Iniciar polling para nuevos mensajes cada 3 segundos
+            startChatPolling();
+        } else {
+            showError('Error al cargar el ticket: ' + (data.message || 'Error desconocido'));
+        }
+    } catch (error) {
+        console.error('Error loading ticket:', error);
+        showError('Error al cargar el ticket');
+    }
+}
+
+// Show ticket chat modal
+function showTicketChatModal(ticket, messages) {
+    const modal = document.getElementById('ticketModal');
+    const modalBody = document.getElementById('ticketModalBody');
+    
+    document.getElementById('ticketModalTitle').innerHTML = `Ticket #${ticket.id} - ${ticket.subject}`;
+    
+    let html = '<div class="ticket-chat-container">';
+    
+    // Ticket info header
+    html += '<div class="ticket-info">';
+    html += `<div><strong>Cliente:</strong> ${ticket.user_name || 'N/A'}</div>`;
+    html += `<div><strong>Categoria:</strong> ${getCategoryLabel(ticket.category)}</div>`;
+    html += `<div><strong>Prioridad:</strong> ${getPriorityBadge(ticket.priority)}</div>`;
+    html += `<div><strong>Estado:</strong> ${getStatusBadge(ticket.status)}</div>`;
+    html += `<div><strong>Fecha:</strong> ${formatDateTime(ticket.created_at)}</div>`;
+    if (ticket.assigned_employee_name) {
+        html += `<div><strong>Asignado a:</strong> ${ticket.assigned_employee_name}</div>`;
+    } else {
+        html += `<div><strong>Asignado a:</strong> <em>Sin asignar</em></div>`;
+    }
+    html += '</div>';
+    
+    // Status update section
+    html += '<div class="ticket-status-controls" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">';
+    html += '<div style="display: flex; gap: 10px; align-items: center;">';
+    html += '<strong>Cambiar estado:</strong>';
+    html += `<select id="ticketStatusSelect" class="form-control" style="width: 200px;">`;
+    html += `<option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Abierto</option>`;
+    html += `<option value="in_progress" ${ticket.status === 'in_progress' ? 'selected' : ''}>En Proceso</option>`;
+    html += `<option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>Resuelto</option>`;
+    html += `<option value="closed" ${ticket.status === 'closed' ? 'selected' : ''}>Cerrado</option>`;
+    html += '</select>';
+    html += `<button class="btn btn-primary" onclick="updateTicketStatus()">Actualizar</button>`;
+    html += '</div></div>';
+    
+    // Messages thread
+    html += '<div class="chat-messages" id="chatMessages" style="margin-top: 20px;">';
+    
+    // Initial ticket message
+    html += '<div class="chat-message client-message">';
+    html += `<div class="message-header"><strong>${ticket.user_name || 'Cliente'}</strong> <span class="message-time">${formatDateTime(ticket.created_at)}</span></div>`;
+    html += `<div class="message-body">${ticket.message}</div>`;
+    html += '</div>';
+    
+    // Subsequent messages
+    if (messages && messages.length > 0) {
+        messages.forEach(msg => {
+            const isEmployee = msg.user_id !== ticket.user_id;
+            const messageClass = isEmployee ? 'employee-message' : 'client-message';
+            const internalBadge = msg.is_internal ? '<span class="internal-badge">Nota interna</span>' : '';
+            
+            html += `<div class="chat-message ${messageClass}">`;
+            html += `<div class="message-header"><strong>${msg.user_name || 'Usuario'}</strong> ${internalBadge} <span class="message-time">${formatDateTime(msg.created_at)}</span></div>`;
+            html += `<div class="message-body">${msg.message}</div>`;
+            html += '</div>';
+        });
+    }
+    
+    html += '</div>';
+    
+    // Message input
+    html += '<div class="chat-input-container" style="margin-top: 20px;">';
+    html += '<textarea id="ticketMessageInput" class="form-control" placeholder="Escribe tu respuesta..." rows="3"></textarea>';
+    html += '<div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">';
+    html += '<label style="margin: 0;"><input type="checkbox" id="isInternalNote"> Nota interna (solo empleados)</label>';
+    html += '<button class="btn btn-primary" onclick="sendTicketMessage()" style="margin-left: auto;"><i class="fas fa-paper-plane"></i> Enviar</button>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '</div>';
+    
+    modalBody.innerHTML = html;
+    modal.style.display = 'flex';
+    
+    // Scroll to bottom of messages
+    setTimeout(() => {
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }, 100);
+}
+
+// Close ticket modal
+function closeTicketModal() {
+    document.getElementById('ticketModal').style.display = 'none';
+    currentTicketId = null;
+    lastMessageCount = 0;
+    
+    // Detener polling cuando se cierra el chat
+    stopChatPolling();
+}
+
+// Send ticket message
+async function sendTicketMessage() {
+    const messageInput = document.getElementById('ticketMessageInput');
+    const isInternalCheckbox = document.getElementById('isInternalNote');
+    const message = messageInput.value.trim();
+    
+    if (!message) {
+        showError('Por favor escribe un mensaje');
+        return;
+    }
+    
+    if (!currentTicketId) {
+        showError('Error: Ticket no identificado');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/employee/ticket/${currentTicketId}/message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                message: message,
+                is_internal: isInternalCheckbox.checked
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Mensaje enviado');
+            messageInput.value = '';
+            isInternalCheckbox.checked = false;
+            // Reload ticket chat
+            viewTicketChat(currentTicketId);
+        } else {
+            showError('Error al enviar mensaje: ' + (data.message || 'Error desconocido'));
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showError('Error al enviar el mensaje');
+    }
+}
+
+// Update ticket status
+async function updateTicketStatus() {
+    const statusSelect = document.getElementById('ticketStatusSelect');
+    const newStatus = statusSelect.value;
+    
+    if (!currentTicketId) {
+        showError('Error: Ticket no identificado');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/employee/ticket/${currentTicketId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                status: newStatus
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Estado actualizado correctamente');
+            loadTickets();
+            viewTicketChat(currentTicketId);
+        } else {
+            showError('Error al actualizar estado: ' + (data.message || 'Error desconocido'));
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        showError('Error al actualizar el estado');
+    }
+}
+
+// Start polling for new messages in the current ticket
+function startChatPolling() {
+    console.log('Starting chat polling...');
+    stopChatPolling(); // Clear any existing interval
+    
+    chatPollingInterval = setInterval(async () => {
+        if (!currentTicketId) {
+            console.log('No current ticket, stopping chat polling');
+            stopChatPolling();
+            return;
+        }
+        
+        await loadTicketMessages(true); // Silent mode
+    }, 3000); // Poll every 3 seconds
+}
+
+// Stop chat polling
+function stopChatPolling() {
+    if (chatPollingInterval) {
+        console.log('Stopping chat polling');
+        clearInterval(chatPollingInterval);
+        chatPollingInterval = null;
+    }
+}
+
+// Load ticket messages (for polling)
+async function loadTicketMessages(silent = false) {
+    if (!currentTicketId) return;
+    
+    try {
+        const response = await fetch(`/employee/ticket/${currentTicketId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            const currentMessageCount = (data.messages ? data.messages.length : 0) + 1; // +1 for initial message
+            
+            if (currentMessageCount > lastMessageCount) {
+                console.log(`New messages detected: ${currentMessageCount} vs ${lastMessageCount}`);
+                lastMessageCount = currentMessageCount;
+                showTicketChatModal(data.ticket, data.messages);
+            }
+        }
+    } catch (error) {
+        if (!silent) {
+            console.error('Error loading messages:', error);
+        }
+    }
+}
+
+// Start polling for tickets list updates
+function startTicketsPolling() {
+    console.log('Starting tickets list polling...');
+    stopTicketsPolling(); // Clear any existing interval
+    
+    ticketsPollingInterval = setInterval(async () => {
+        await loadTickets(true); // Silent mode
+    }, 30000); // Poll every 30 seconds
+}
+
+// Stop tickets polling
+function stopTicketsPolling() {
+    if (ticketsPollingInterval) {
+        console.log('Stopping tickets polling');
+        clearInterval(ticketsPollingInterval);
+        ticketsPollingInterval = null;
+    }
+}
+
+// Helper functions for tickets
+function getCategoryLabel(category) {
+    const labels = {
+        'consulta': 'Consulta',
+        'soporte_tecnico': 'Soporte Técnico',
+        'reclamo': 'Reclamo',
+        'sugerencia': 'Sugerencia'
+    };
+    return labels[category] || category;
+}
+
+function getPriorityBadge(priority) {
+    const badges = {
+        'low': '<span class="badge badge-priority-low">Baja</span>',
+        'medium': '<span class="badge badge-priority-medium">Media</span>',
+        'high': '<span class="badge badge-priority-high">Alta</span>',
+        'urgent': '<span class="badge badge-priority-urgent">Urgente</span>'
+    };
+    return badges[priority] || priority;
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'open': '<span class="badge badge-status-open">Abierto</span>',
+        'in_progress': '<span class="badge badge-status-inprogress">En Proceso</span>',
+        'resolved': '<span class="badge badge-status-resolved">Resuelto</span>',
+        'closed': '<span class="badge badge-status-closed">Cerrado</span>'
+    };
+    return badges[status] || status;
+}
+
+// Helper functions for general use
+function getCSRFToken() {
+    const token = document.querySelector('meta[name="csrf-token"]');
+    return token ? token.getAttribute('content') : '';
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('es-ES', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function showSuccess(message) {
+    // Crear notificación de éxito
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-success';
+    notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10001;
+        animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+function showError(message) {
+    // Crear notificación de error
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-error';
+    notification.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10001;
+        animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 4000);
+}
+
+// Support section functions
+function showFAQ() {
+    const faqContent = document.getElementById('faqContent');
+    if (faqContent.style.display === 'none') {
+        faqContent.style.display = 'block';
+        faqContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        faqContent.style.display = 'none';
+    }
+}
+
+function toggleFAQ(element) {
+    const answer = element.nextElementSibling;
+    const icon = element.querySelector('i');
+    
+    if (answer.style.display === 'block') {
+        answer.style.display = 'none';
+        icon.className = 'fas fa-chevron-right';
+    } else {
+        answer.style.display = 'block';
+        icon.className = 'fas fa-chevron-down';
+    }
+}
+
+function showGuides() {
+    alert('Las guías de usuario se abrirán en una nueva ventana.\n\nPróximamente: Manual completo del sistema FerreJunior.');
+}
+
+function contactSupport() {
+    const message = 'Información de Contacto:\n\n' +
+                   'Email: soporte@ferrejunior.com\n' +
+                   'Teléfono: +57 (604) 123-4567\n' +
+                   'Horario: Lunes a Viernes, 8:00 AM - 6:00 PM';
+    alert(message);
+}
+
+// Handle URL hash on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, checking for hash in URL');
+    
+    // Check if there's a hash in the URL
+    const hash = window.location.hash.substring(1); // Remove the '#'
+    console.log('URL hash:', hash);
+    
+    if (hash) {
+        // Show the section specified in the hash
+        showSection(hash);
+    } else {
+        // Default to showing dashboard
+        showSection('dashboard');
+    }
+});
+
+// Also handle hash changes when user uses back/forward buttons
+window.addEventListener('hashchange', function() {
+    const hash = window.location.hash.substring(1);
+    console.log('Hash changed to:', hash);
+    if (hash) {
+        showSection(hash);
+    }
+});

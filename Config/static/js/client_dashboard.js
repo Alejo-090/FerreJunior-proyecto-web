@@ -1,7 +1,30 @@
+// Formatear moneda en pesos colombianos
+function formatCOP(amount) {
+    const intAmount = Math.round(amount || 0);
+    return '$' + intAmount.toLocaleString('es-CO');
+}
+
 // User menu toggle
 function toggleUserMenu() {
     const menu = document.getElementById('userMenu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    const button = document.querySelector('.user-menu-btn');
+    
+    if (menu.style.display === 'block' || menu.classList.contains('show')) {
+        menu.style.display = 'none';
+        menu.classList.remove('show');
+    } else {
+        // Calcular posición del botón
+        const buttonRect = button.getBoundingClientRect();
+        
+        // Posicionar el menú justo debajo del botón
+        menu.style.top = (buttonRect.bottom + 8) + 'px';
+        
+        // Alinear el borde derecho del menú con el borde derecho del botón
+        menu.style.left = (buttonRect.right - 220) + 'px'; // 220px es el min-width del menú
+        
+        menu.style.display = 'block';
+        menu.classList.add('show');
+    }
 }
 
 // Load dashboard data
@@ -61,7 +84,7 @@ function updateStats(stats) {
                     <i class="fas fa-dollar-sign"></i>
                 </div>
             </div>
-            <div class="stat-value">${typeof formatCOP === 'function' ? formatCOP(stats.total_spent) : '$' + (stats.total_spent || 0).toLocaleString()}</div>
+            <div class="stat-value">${formatCOP(stats.total_spent_cop || stats.total_spent)}</div>
             <div class="stat-change positive">
                 <i class="fas fa-chart-line"></i>
                 En compras
@@ -117,7 +140,7 @@ function updateRecentOrders(orders) {
                 </div>
                 <div style="display: flex; align-items: center; gap: 16px;">
                     <span class="order-status ${statusClass}">${statusText}</span>
-                    <span class="order-amount">${typeof formatCOP === 'function' ? formatCOP(order.total_amount) : '$' + (order.total_amount || 0).toLocaleString()}</span>
+                    <span class="order-amount">${formatCOP(order.total_amount_cop || order.total_amount)}</span>
                 </div>
             </div>
         `;
@@ -161,8 +184,11 @@ function showError(message) {
 window.onclick = function(event) {
     const userMenu = document.getElementById('userMenu');
     const userBtn = document.querySelector('.user-menu-btn');
-    if (!userBtn.contains(event.target) && userMenu.style.display === 'block') {
-        userMenu.style.display = 'none';
+    if (userMenu && userBtn && !userBtn.contains(event.target) && !userMenu.contains(event.target)) {
+        if (userMenu.style.display === 'block' || userMenu.classList.contains('show')) {
+            userMenu.style.display = 'none';
+            userMenu.classList.remove('show');
+        }
     }
 }
 

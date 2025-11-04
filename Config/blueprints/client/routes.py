@@ -1,5 +1,6 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify, session
 from flask_login import login_required, current_user
+from flask_wtf.csrf import generate_csrf
 from . import client_bp
 from Config.decorators import client_access
 from Config.models.user import User
@@ -607,6 +608,8 @@ def create_client_address():
     """Crear nueva dirección de envío"""
     try:
         data = request.get_json()
+        print(f"DEBUG - Datos recibidos: {data}")
+        print(f"DEBUG - Tipo de datos: {type(data)}")
 
         # Si es la primera dirección o se marca como default, quitar default de otras
         if data.get('is_default', False) or Address.query.filter_by(user_id=current_user.id).count() == 0:
@@ -635,6 +638,8 @@ def create_client_address():
     except Exception as e:
         db.session.rollback()
         print(f"Error en create_client_address: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e), 'success': False}), 500
 
 @client_bp.route("/client/address/<int:address_id>", methods=["PUT"])
@@ -742,6 +747,9 @@ def create_order():
             order_number=order_number,
             status='pending',
             total_amount=float(total),
+            subtotal=float(subtotal),
+            shipping_cost=float(shipping),
+            tax_amount=float(tax),
             shipping_address=shipping_address,
             payment_method=data.get('payment_method', 'Tarjeta de crédito'),
             notes=data.get('notes', '')
@@ -774,7 +782,7 @@ def create_order():
                 'order_id': order.id,
                 'product_id': product.id,
                 'product_name': product.name,
-                'product_image': product.image,
+                'product_image': getattr(product, 'image', None),
                 'quantity': cart_item.quantity,
                 'price': unit_price,
                 'unit_price': unit_price,
@@ -946,3 +954,377 @@ def change_client_password():
         db.session.rollback()
         print(f"Error en change_client_password: {e}")
         return jsonify({'error': str(e), 'success': False}), 500
+# Client Ticket/Support Endpoints
+@client_bp.route("/client/my-tickets")
+@login_required
+def my_tickets():
+    try:
+        from Config.models.ticket import Ticket
+        
+        tickets = Ticket.query.filter_by(user_id=current_user.id).order_by(Ticket.created_at.desc()).all()
+        tickets_data = [ticket.to_dict() for ticket in tickets]
+        
+        return jsonify({
+            'success': True,
+            'tickets': tickets_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@client_bp.route("/client/ticket/create", methods=["POST"])
+@login_required
+def create_ticket():
+    try:
+        from Config.models.ticket import Ticket
+        
+        data = request.get_json()
+        subject = data.get('subject')
+        message = data.get('message')
+        category = data.get('category', 'consulta')
+        priority = data.get('priority', 'medium')
+        
+        if not subject or not message:
+            return jsonify({
+                'success': False,
+                'error': 'Asunto y mensaje son requeridos'
+            }), 400
+        
+        new_ticket = Ticket(
+            user_id=current_user.id,
+            subject=subject,
+            message=message,
+            category=category,
+            priority=priority,
+            status='open'
+        )
+        
+        db.session.add(new_ticket)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Ticket creado exitosamente',
+            'ticket': new_ticket.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@client_bp.route("/client/ticket/<int:ticket_id>")
+@login_required
+def get_my_ticket(ticket_id):
+    try:
+        from Config.models.ticket import Ticket, TicketMessage
+        
+        ticket = Ticket.query.filter_by(id=ticket_id, user_id=current_user.id).first()
+        
+        if not ticket:
+            return jsonify({
+                'success': False,
+                'error': 'Ticket no encontrado'
+            }), 404
+        
+        # Get messages (exclude internal ones for clients)
+        messages = TicketMessage.query.filter_by(
+            ticket_id=ticket_id,
+            is_internal=False
+        ).order_by(TicketMessage.created_at.asc()).all()
+        
+        messages_data = [msg.to_dict() for msg in messages]
+        
+        return jsonify({
+            'success': True,
+            'ticket': ticket.to_dict(),
+            'messages': messages_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@client_bp.route("/client/ticket/<int:ticket_id>/message", methods=["POST"])
+@login_required
+def add_my_ticket_message(ticket_id):
+    try:
+        from Config.models.ticket import Ticket, TicketMessage
+        
+        ticket = Ticket.query.filter_by(id=ticket_id, user_id=current_user.id).first()
+        
+        if not ticket:
+            return jsonify({
+                'success': False,
+                'error': 'Ticket no encontrado'
+            }), 404
+        
+        data = request.get_json()
+        message_text = data.get('message')
+        
+        if not message_text:
+            return jsonify({
+                'success': False,
+                'error': 'El mensaje no puede estar vacío'
+            }), 400
+        
+        new_message = TicketMessage(
+            ticket_id=ticket_id,
+            user_id=current_user.id,
+            message=message_text,
+            is_internal=False
+        )
+        
+        ticket.updated_at = datetime.utcnow()
+        
+        db.session.add(new_message)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Mensaje enviado correctamente',
+            'ticket_message': new_message.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@client_bp.route("/client/support")
+@client_access
+def client_support():
+    """Pagina de soporte y tickets para clientes"""
+    return render_template("views/client/client_support.html")
+
+
+@client_bp.route("/client/get-csrf-token")
+@client_access
+def get_csrf_token():
+    """Obtener token CSRF para peticiones AJAX"""
+    return jsonify({
+        'csrf_token': generate_csrf()
+    })
+
+
+@client_bp.route("/client/tickets-data")
+@client_access
+def client_tickets_data():
+    """API endpoint para obtener todos los tickets del cliente"""
+    try:
+        from Config.models.ticket import Ticket
+        
+        tickets = Ticket.query.filter_by(user_id=current_user.id).order_by(Ticket.created_at.desc()).all()
+        tickets_data = []
+        
+        for ticket in tickets:
+            ticket_dict = ticket.to_dict()
+            # Agregar nombre del asignado si existe
+            if ticket.assigned_to:
+                assigned_user = User.query.get(ticket.assigned_to)
+                if assigned_user:
+                    ticket_dict['assigned_to_name'] = assigned_user.name
+            tickets_data.append(ticket_dict)
+        
+        return jsonify({
+            'success': True,
+            'tickets': tickets_data
+        })
+    except Exception as e:
+        print(f"Error en tickets-data: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@client_bp.route("/client/tickets/create", methods=["POST"])
+@client_access
+def create_client_ticket():
+    """Crear nuevo ticket de soporte"""
+    try:
+        from Config.models.ticket import Ticket, TicketMessage
+        
+        # Get data from JSON or form
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+            
+        subject = data.get('subject', '').strip()
+        description = data.get('description', '').strip()  # Viene como 'description' del frontend
+        category = data.get('category', 'otro')
+        priority = data.get('priority', 'media')
+        
+        print(f"DEBUG: Creating ticket - subject={subject}, category={category}, priority={priority}")
+        
+        if not subject or not description:
+            return jsonify({
+                'success': False,
+                'error': 'Asunto y descripción son requeridos'
+            }), 400
+        
+        # Mapear estados y prioridades al formato del modelo existente
+        status_map = {
+            'abierto': 'open',
+            'en_proceso': 'in_progress',
+            'resuelto': 'resolved',
+            'cerrado': 'closed'
+        }
+        
+        priority_map = {
+            'baja': 'low',
+            'media': 'medium',
+            'alta': 'high',
+            'urgente': 'urgent'
+        }
+        
+        # Crear el ticket usando el campo 'message' del modelo
+        new_ticket = Ticket(
+            user_id=current_user.id,
+            subject=subject,
+            message=description,  # El modelo usa 'message' no 'description'
+            category=category,
+            priority=priority_map.get(priority, 'medium'),
+            status='open'  # El modelo usa 'open' no 'abierto'
+        )
+        
+        db.session.add(new_ticket)
+        db.session.flush()  # Get the ticket ID
+        
+        # Crear el primer mensaje con la descripción
+        initial_message = TicketMessage(
+            ticket_id=new_ticket.id,
+            user_id=current_user.id,
+            message=description,
+            is_internal=False
+        )
+        
+        db.session.add(initial_message)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Ticket creado exitosamente',
+            'ticket': new_ticket.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creando ticket: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@client_bp.route("/client/tickets/<int:ticket_id>/messages", methods=["GET", "POST"])
+@client_access
+def client_ticket_messages(ticket_id):
+    """Obtener o agregar mensajes a un ticket"""
+    try:
+        from Config.models.ticket import Ticket, TicketMessage
+        
+        # Verificar que el ticket pertenece al cliente
+        ticket = Ticket.query.filter_by(id=ticket_id, user_id=current_user.id).first()
+        
+        if not ticket:
+            return jsonify({
+                'success': False,
+                'error': 'Ticket no encontrado'
+            }), 404
+        
+        if request.method == 'GET':
+            # Obtener mensajes (excluir internos)
+            messages = TicketMessage.query.filter_by(
+                ticket_id=ticket_id,
+                is_internal=False
+            ).order_by(TicketMessage.created_at.asc()).all()
+            
+            messages_data = []
+            for msg in messages:
+                msg_dict = msg.to_dict()
+                # Agregar sender_role basado en el rol del usuario
+                if msg.user:
+                    msg_dict['sender_role'] = msg.user.role
+                    msg_dict['sender_name'] = msg.user.name
+                messages_data.append(msg_dict)
+            
+            return jsonify({
+                'success': True,
+                'messages': messages_data
+            })
+        
+        elif request.method == 'POST':
+            # Agregar nuevo mensaje
+            data = request.get_json()
+            content = data.get('content', '').strip()
+            
+            if not content:
+                return jsonify({
+                    'success': False,
+                    'error': 'El mensaje no puede estar vacío'
+                }), 400
+            
+            new_message = TicketMessage(
+                ticket_id=ticket_id,
+                user_id=current_user.id,
+                message=content,  # El modelo usa 'message' no 'content'
+                is_internal=False
+            )
+            
+            # Actualizar fecha de modificación del ticket
+            ticket.updated_at = datetime.utcnow()
+            
+            # Si el ticket estaba resuelto, reabrirlo
+            if ticket.status in ['resolved', 'closed']:
+                ticket.status = 'open'
+            
+            db.session.add(new_message)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Mensaje enviado correctamente',
+                'ticket_message': new_message.to_dict()
+            })
+            
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en ticket messages: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@client_bp.route("/client/order/<int:order_id>/tracking")
+@client_access
+def order_tracking(order_id):
+    """Página de rastreo en tiempo real del pedido"""
+    import os
+    
+    # Verificar que el pedido pertenece al cliente
+    order = Order.query.filter_by(id=order_id, user_id=current_user.id).first()
+    
+    if not order:
+        flash('Pedido no encontrado', 'error')
+        return redirect(url_for('client.orders'))
+    
+    # Obtener API Key de Google Maps
+    google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY', '')
+    
+    if not google_maps_api_key:
+        flash('El sistema de rastreo no está configurado correctamente', 'error')
+        return redirect(url_for('client.order_detail', order_id=order_id))
+    
+    return render_template(
+        'views/client/client_order_tracking.html',
+        order=order,
+        google_maps_api_key=google_maps_api_key
+    )

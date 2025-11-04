@@ -4,6 +4,12 @@ let currentFilters = {};
 let currentSort = '';
 let allProducts = [];
 
+// Formatear moneda en pesos colombianos
+function formatCOP(amount) {
+    const intAmount = Math.round(amount || 0);
+    return '$' + intAmount.toLocaleString('es-CO');
+}
+
 // Productos cargados desde la API (inicialmente vacío)
 let products = [];
 let pagination = { page: 1, per_page: 12, total: 0, pages: 1 };
@@ -113,15 +119,15 @@ function applyFilters() {
         );
     }
 
-    // Aplicar filtros de precio
+    // Aplicar filtros de precio (en pesos colombianos)
     if (currentFilters.price) {
         filteredProducts = filteredProducts.filter(product => {
-            const price = product.price;
+            const price = product.price_cop || product.price;
             switch(currentFilters.price) {
-                case 'price-0-50': return price < 50;
-                case 'price-50-100': return price >= 50 && price <= 100;
-                case 'price-100-200': return price > 100 && price <= 200;
-                case 'price-200-plus': return price > 200;
+                case 'price-0-50': return price < 50000;  // Menos de $50.000
+                case 'price-50-100': return price >= 50000 && price <= 100000;  // $50.000 - $100.000
+                case 'price-100-200': return price > 100000 && price <= 200000;  // $100.000 - $200.000
+                case 'price-200-plus': return price > 200000;  // Más de $200.000
                 default: return true;
             }
         });
@@ -180,7 +186,7 @@ function renderProducts() {
                 <h3 class="product-name">${product.name}</h3>
                 <p class="product-description">${product.description}</p>
                 <div class="product-footer">
-                    <span class="product-price">${typeof formatCOP === 'function' ? formatCOP(product.price) : '$' + (product.price || 0).toLocaleString()}</span>
+                    <span class="product-price">${formatCOP(product.price_cop || product.price)}</span>
                     <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('${product.id}')" ${product.in_stock ? '' : 'disabled title="Sin stock"'}>
                         <i class="fas fa-plus"></i>
                     </button>

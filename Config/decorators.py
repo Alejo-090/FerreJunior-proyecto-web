@@ -8,10 +8,10 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Debes iniciar sesión para acceder a esta página.', 'danger')
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
         if not current_user.is_admin():
             flash('No tienes permisos de administrador para acceder a esta página.', 'danger')
-            return redirect(url_for('main'))
+            return redirect(url_for('main.index'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -21,10 +21,10 @@ def employee_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Debes iniciar sesión para acceder a esta página.', 'danger')
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
         if not current_user.is_employee():
             flash('No tienes permisos de empleado para acceder a esta página.', 'danger')
-            return redirect(url_for('main'))
+            return redirect(url_for('main.index'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -34,6 +34,6 @@ def client_access(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Debes iniciar sesión para acceder a esta página.', 'danger')
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
