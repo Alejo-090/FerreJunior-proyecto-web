@@ -11,26 +11,33 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=12345
-      - DB_NAME=mysql
+      - DB_NAME=ferrejunior
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+    restart: unless-stopped
 
   db:
     container_name: mysql_db
     image: mysql:8.0
     restart: always
-    ports:
-      - "3388:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 12345
-      MYSQL_DATABASE: mysql
+      MYSQL_DATABASE: ferrejunior
+    ports:
+      - "3388:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p12345"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   mysql_data:
