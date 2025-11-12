@@ -9,3 +9,6 @@ Flask-WTF
 requests
 mysql-connector-python
 python-dotenv
+mysqlclient
+PyJWT
+email-validator

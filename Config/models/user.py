@@ -9,7 +9,7 @@ class User(UserMixin, db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(100))
+    password = db.Column(db.String(255))  # Aumentado a 255 para hashes más largos
     name = db.Column(db.String(100))
     role = db.Column(db.String(50), default='cliente')  # 'admin', 'empleado', 'cliente'
     phone = db.Column(db.String(20))

@@ -5,7 +5,7 @@ services:
     container_name: flask_app
     build:
       context: .
-      dockerfile: Dockerfile  # Asegúrate de que se llama así o cámbialo aquí
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     volumes:
@@ -21,6 +21,11 @@ services:
       - DB_NAME=ferrejunior
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
     restart: unless-stopped
+    command: >
+      sh -c "python -c 'import time; time.sleep(10)' && 
+         python -c 'from app import app, db; app.app_context().push(); db.create_all()' && 
+         python init_db.py &&
+         python app.py"
 
   db:
     container_name: mysql_db
@@ -29,15 +34,17 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 12345
       MYSQL_DATABASE: ferrejunior
+      MYSQL_USER: ferrejunior
+      MYSQL_PASSWORD: 12345
     ports:
       - "3388:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p12345"]
-      interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
   mysql_data:
+    name: ferrejunior_mysql_data
