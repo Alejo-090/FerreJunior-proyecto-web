@@ -50,11 +50,27 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="profile-info">
-                    <h2>Juan Pérez</h2>
-                    <div class="role-badge">Cliente</div>
+                    <h2>{{ current_user.name if current_user.is_authenticated else 'Usuario' }}</h2>
+                    <div class="role-badge">
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.is_admin() %}
+                                Administrador
+                            {% elif current_user.is_employee() %}
+                                Empleado
+                            {% else %}
+                                Cliente
+                            {% endif %}
+                        {% else %}
+                            Usuario
+                        {% endif %}
+                    </div>
                     <div class="status">
                         <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i>
-                        Cuenta activa
+                        {% if current_user.is_authenticated and current_user.active %}
+                            Cuenta activa
+                        {% else %}
+                            Cuenta inactiva
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -69,15 +85,27 @@
                     </h3>
                     <div class="info-item">
                         <span class="info-label">Nombre completo:</span>
-                        <span class="info-value">Juan Pérez</span>
+                        <span class="info-value">{{ current_user.name if current_user.is_authenticated else 'N/A' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Correo electrónico:</span>
-                        <span class="info-value">juan.perez@ferrejunior.com</span>
+                        <span class="info-value">{{ current_user.email if current_user.is_authenticated else 'N/A' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Rol en el sistema:</span>
-                        <span class="info-value">Cliente</span>
+                        <span class="info-value">
+                            {% if current_user.is_authenticated %}
+                                {% if current_user.is_admin() %}
+                                    Administrador
+                                {% elif current_user.is_employee() %}
+                                    Empleado
+                                {% else %}
+                                    Cliente
+                                {% endif %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
 
@@ -89,15 +117,27 @@
                     </h3>
                     <div class="info-item">
                         <span class="info-label">ID de usuario:</span>
-                        <span class="info-value">#1001</span>
+                        <span class="info-value">#{{ current_user.id if current_user.is_authenticated else 'N/A' }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Estado de cuenta:</span>
-                        <span class="info-value" style="color: #10b981;">Activa</span>
+                        <span class="info-value" style="color: {% if current_user.is_authenticated and current_user.active %}#10b981{% else %}#ef4444{% endif %};">
+                            {% if current_user.is_authenticated and current_user.active %}
+                                Activa
+                            {% else %}
+                                Inactiva
+                            {% endif %}
+                        </span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Miembro desde:</span>
-                        <span class="info-value">15/03/2024</span>
+                        <span class="info-value">
+                            {% if current_user.is_authenticated and current_user.created_at %}
+                                {{ current_user.created_at.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
             </div>

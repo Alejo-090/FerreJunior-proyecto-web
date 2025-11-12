@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 
 # Configuración de la aplicación
-app.config['SECRET_KEY'] = 'tu_clave_secreta_muy_segura_aqui'  # Cambiar por una clave más segura
+app.config['SECRET_KEY'] = '12345'  # Cambiar por una clave más segura
 
 # Configuración de la base de datos
 # Para desarrollo, usaremos SQLite (más fácil de configurar)

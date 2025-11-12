@@ -7,3 +7,5 @@ Flask-Login
 pymysql
 Flask-WTF
 requests
+mysql-connector-python
+python-dotenv

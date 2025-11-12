@@ -290,8 +290,34 @@ function showTab(tabName) {
     event.target.classList.add('active');
 }
 
+// Check if user is in public mode (not authenticated)
+function isPublicMode() {
+    return document.getElementById('loginModal') !== null;
+}
+
+// Modal functions
+function showLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+function hideLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+}
+
 // Product Actions
 async function addToCart(productId) {
+    // If in public mode, show login modal instead
+    if (isPublicMode()) {
+        showLoginModal();
+        return;
+    }
+    
     const quantity = parseInt(document.getElementById('quantity').value || '1');
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -315,6 +341,12 @@ async function addToCart(productId) {
 }
 
 async function buyNow(productId) {
+    // If in public mode, show login modal instead
+    if (isPublicMode()) {
+        showLoginModal();
+        return;
+    }
+    
     const quantity = parseInt(document.getElementById('quantity').value || '1');
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -328,7 +360,7 @@ async function buyNow(productId) {
         if (payload && payload.success) {
             showNotification('Producto agregado. Redirigiendo al checkout...', 'success');
             // darle tiempo a que se procese
-            setTimeout(() => { window.location.href = '{{ url_for("client.checkout") }}'; }, 600);
+            setTimeout(() => { window.location.href = '/client/checkout'; }, 600);
         } else {
             showNotification(payload.error || 'No se pudo agregar el producto', 'error');
         }
@@ -412,7 +444,27 @@ function showNotification(message, type) {
 document.addEventListener('DOMContentLoaded', function() {
     try {
         // Update badge using server-side data (quantity sum)
-        refreshCartBadge();
+        if (!isPublicMode()) {
+            refreshCartBadge();
+        }
+        
+        // Setup modal close handlers if in public mode
+        if (isPublicMode()) {
+            const closeButtons = document.querySelectorAll('.close-modal, .close-modal-btn');
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', hideLoginModal);
+            });
+            
+            // Close modal when clicking outside
+            const modal = document.getElementById('loginModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        hideLoginModal();
+                    }
+                });
+            }
+        }
     } catch (e) {
         console.error('Error refreshing cart badge on load:', e);
     }

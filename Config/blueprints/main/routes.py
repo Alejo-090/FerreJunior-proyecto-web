@@ -1,10 +1,68 @@
-from flask import redirect, url_for, render_template
+from flask import redirect, url_for, render_template, request, jsonify
 from flask_login import login_required, current_user
 from . import main_bp
+from Config.models.product import Product
 
 @main_bp.route("/")
 def index():
-    return redirect(url_for('auth.login'))
+    """Página principal pública de e-commerce"""
+    return render_template("views/main/ecommerce_home.html")
+
+@main_bp.route("/public/products")
+def public_products():
+    """API pública para obtener productos activos"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 12))
+        
+        query = Product.query.filter_by(active=True).order_by(Product.created_at.desc())
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        products = pagination.items
+        data = [p.to_dict() for p in products]
+        
+        return jsonify({
+            'products': data,
+            'pagination': {
+                'page': pagination.page,
+                'per_page': pagination.per_page,
+                'total': pagination.total,
+                'pages': pagination.pages,
+                'has_next': pagination.has_next,
+                'has_prev': pagination.has_prev
+            },
+            'success': True
+        })
+    except Exception as e:
+        print(f"Error en public_products: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+@main_bp.route("/public/product/<int:product_id>")
+def public_product_detail(product_id):
+    """Página pública de detalle de producto"""
+    product = Product.query.get_or_404(product_id)
+    
+    if not product.active:
+        return redirect(url_for('main.index'))
+    
+    # Productos relacionados por categoría (máx 4)
+    related_q = Product.query.filter(
+        Product.category_id == product.category_id,
+        Product.id != product.id,
+        Product.active == True
+    ).limit(4).all()
+    related_products = [p.to_dict() for p in related_q]
+    
+    # Construir un dict compatible con la plantilla
+    product_data = product.to_dict()
+    product_data['in_stock'] = (product.stock_quantity > 0)
+    product_data['rating'] = getattr(product, 'rating', 4.5) or 4.5
+    product_data['reviews'] = getattr(product, 'reviews', 0) or 0
+    product_data['special_price'] = getattr(product, 'special_price', None)
+    product_data['features'] = getattr(product, 'features', []) or []
+    product_data['specifications'] = getattr(product, 'specifications', {}) or {}
+    product_data['image'] = getattr(product, 'image', None)
+    
+    return render_template("views/client/product_detail.html", product=product_data, related_products=related_products, is_public=True)
 
 @main_bp.route("/main")
 @login_required

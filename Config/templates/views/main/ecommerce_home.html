@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FerreJunior - Todo para tu Proyecto</title>
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
+    <link href="{{ url_for('static', filename='css/ecommerce_home.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="ecommerce-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <i class="fas fa-wrench"></i>
+                <span class="logo-text">FerreJunior</span>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('auth.login') }}" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Iniciar Sesión</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="ecommerce-main">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Todo para tu Proyecto</h1>
+                <p class="hero-subtitle">Las mejores herramientas y materiales de construcción</p>
+                <a href="#products" class="hero-btn">Ver Catálogo</a>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products" class="products-section">
+            <div class="products-container">
+                <div class="products-grid" id="productsGrid">
+                    <!-- Los productos se cargarán dinámicamente aquí -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Iniciar Sesión</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Para agregar productos al carrito o realizar una compra, necesitas iniciar sesión.</p>
+                <div class="modal-actions">
+                    <a href="{{ url_for('auth.login') }}" class="btn-primary">Ir a Iniciar Sesión</a>
+                    <button class="btn-secondary close-modal-btn">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ecommerce_home.js') }}"></script>
+</body>
+</html>
+

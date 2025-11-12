@@ -32,7 +32,7 @@
             <div class="user-info dropdown">
                 <a href="#" class="user-dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fas fa-user"></i>
-                    <span>Juan Pérez</span>
+                    <span>{{ current_user.name if current_user.is_authenticated else 'Usuario' }}</span>
                     <i class="fas fa-chevron-down ml-1" style="font-size: 10px;"></i>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">

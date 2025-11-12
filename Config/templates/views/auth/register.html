@@ -1,16 +1,15 @@
 <!DOCTYPE html>
-<!-- TEMPLATE: FerreJunior Login - Custom Auth Template -->
+<!-- TEMPLATE: FerreJunior Register - Custom Auth Template -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - FerreJunior</title>
+    <title>Registro - FerreJunior</title>
     
     <!-- CSS -->
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}?v=1.1" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/auth_login.css') }}?v=1.1" rel="stylesheet">
-
 </head>
 <body>
 <div class="container">
@@ -37,32 +36,28 @@
                         <div class="col-lg-6 d-none d-lg-block bg-login-image">
                             <div class="p-5 text-center text-white">
                                 <h4 class="mb-4">FerreJunior</h4>
-                                <p class="mb-4">Tu socio confiable en herramientas y materiales de construcción</p>
+                                <p class="mb-4">Únete a nuestra comunidad</p>
                                 
                                 <div class="mt-5">
-                                    <h4>Sobre nosotros</h4>
-                                    <p class="mt-4">En FerreJunior somos tu ferretería de confianza, ofreciendo herramientas, materiales y soluciones para el hogar, la construcción y la industria. Combinamos atención personalizada, productos de calidad y precios competitivos para ayudarte a hacer realidad tus proyectos, grandes o pequeños.</p>
-                                </div>
-
-                                <div class="row mt-5">
-                                    <div class="col-md-4">
-                                        <div class="p-3 mb-3" style="background: rgba(255,255,255,0.2); border-radius: 8px;">
-                                            <i class="fas fa-tools fa-2x mb-2"></i>
-                                            <p class="small mb-0">+5000 Productos</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="p-3 mb-3" style="background: rgba(255,255,255,0.2); border-radius: 8px;">
-                                            <i class="fas fa-truck fa-2x mb-2"></i>
-                                            <p class="small mb-0">Envío Gratis</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="p-3 mb-3" style="background: rgba(255,255,255,0.2); border-radius: 8px;">
-                                            <i class="fas fa-shield-alt fa-2x mb-2"></i>
-                                            <p class="small mb-0">Garantía Total</p>
-                                        </div>
-                                    </div>
+                                    <h4>Beneficios de registrarte</h4>
+                                    <ul class="list-unstyled mt-4 text-left" style="max-width: 400px; margin: 0 auto;">
+                                        <li class="mb-3">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            Acceso a ofertas exclusivas
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            Seguimiento de pedidos en tiempo real
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            Historial de compras
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            Soporte prioritario
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -72,17 +67,28 @@
                                 <div class="text-center">
                                     <div class="mb-4">
                                         <div style="background-color: #ff6b35; width: 60px; height: 60px; border-radius: 12px; margin: 0 auto;">
-                                            <i class="fas fa-wrench fa-2x text-white" style="line-height: 60px;"></i>
+                                            <i class="fas fa-user-plus fa-2x text-white" style="line-height: 60px;"></i>
                                         </div>
                                     </div>
-                                <h1 class="h4 text-gray-900 mb-2">Iniciar Sesión</h1>
-                                <p class="mb-4 text-gray-600">Accede a tu cuenta de Ferretería Pro</p>
-                                <!-- FERREJUNIOR LOGIN TEMPLATE LOADED -->
+                                    <h1 class="h4 text-gray-900 mb-2">Crear Cuenta</h1>
+                                    <p class="mb-4 text-gray-600">Regístrate para comenzar a comprar</p>
                                 </div>
-                                <form class="user" method="POST" action="{{ url_for('auth.login') }}">
-                                    <!-- CSRF token required by Flask-WTF CSRFProtect -->
+                                <form class="user" method="POST" action="{{ url_for('auth.register') }}">
+                                    <!-- CSRF token -->
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <div class="mb-4">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-medium">Nombre Completo</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-user text-gray-600"></i>
+                                            </span>
+                                            <input type="text" class="form-control border-start-0" 
+                                                   name="name" id="name" placeholder="Tu nombre completo" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
                                         <label class="form-label small fw-medium">Correo Electrónico</label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-white border-end-0">
@@ -92,36 +98,50 @@
                                                    name="email" id="email" placeholder="tu@email.com" required>
                                         </div>
                                     </div>
-                                    <div class="mb-4">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-medium">Teléfono (Opcional)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-phone text-gray-600"></i>
+                                            </span>
+                                            <input type="tel" class="form-control border-start-0" 
+                                                   name="phone" id="phone" placeholder="+57 300 123 4567">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
                                         <label class="form-label small fw-medium">Contraseña</label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-white border-end-0">
                                                 <i class="fas fa-lock text-gray-600"></i>
                                             </span>
                                             <input type="password" class="form-control border-start-0" 
-                                                   name="password" id="password" placeholder="••••••••" required>
-                                            <span class="input-group-text bg-white border-start-0">
-                                                <i class="fas fa-eye text-gray-600"></i>
+                                                   name="password" id="password" placeholder="••••••••" required minlength="6">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-medium">Confirmar Contraseña</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-lock text-gray-600"></i>
                                             </span>
+                                            <input type="password" class="form-control border-start-0" 
+                                                   name="confirm_password" id="confirm_password" placeholder="••••••••" required minlength="6">
                                         </div>
                                     </div>
-                                    <div class="mb-4 d-flex justify-content-between align-items-center">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
-                                            <label class="form-check-label text-gray-600" for="rememberMe">
-                                                Recordarme
-                                            </label>
-                                        </div>
-                                        <a href="{{ url_for('auth.forgot_password') }}" class="text-login">¿Olvidaste tu contraseña?</a>
-                                    </div>
+                                    
                                     <button type="submit" class="btn btn-orange btn-user btn-block text-black" style="background-color: #ea580c;">
-                                        <i class="fas fa-sign-in-alt fa-sm fa-fw"></i>
-                                        <strong>Iniciar Sesión</strong>
+                                        <i class="fas fa-user-plus fa-sm fa-fw"></i>
+                                        <strong>Registrarse</strong>
                                     </button>
                                 </form>
+                                
                                 <div class="divider-text">
-                                    <span>O continúa con</span>
+                                    <span>O regístrate con</span>
                                 </div>
+                                
                                 <div class="row mt-3">
                                     <div class="col-6">
                                         <a href="{{ url_for('auth.login_google') }}" class="btn social-login-btn w-100">
@@ -136,9 +156,10 @@
                                         </a>
                                     </div>
                                 </div>
+                                
                                 <div class="text-center mt-4">
-                                    <span class="text-gray-600">¿No tienes cuenta?</span>
-                                    <a href="{{ url_for('auth.register') }}" class="text-login ms-1">Regístrate aquí</a>
+                                    <span class="text-gray-600">¿Ya tienes cuenta?</span>
+                                    <a href="{{ url_for('auth.login') }}" class="text-login ms-1">Inicia sesión aquí</a>
                                 </div>
                             </div>
                         </div>
@@ -153,6 +174,6 @@
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/auth_login.js') }}"></script>
 </body>
 </html>
+

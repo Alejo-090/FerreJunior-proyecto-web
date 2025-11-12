@@ -8,6 +8,10 @@ from flask_marshmallow import Marshmallow
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_wtf.csrf import CSRFError
 import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 # Importar blueprints
 from Config.blueprints.auth import auth_bp
