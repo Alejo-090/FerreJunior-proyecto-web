@@ -1129,12 +1129,12 @@
     </div>
 
     <div id="importProductsModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 640px;">
+        <div class="modal-content" style="max-width: 640px; display: flex; flex-direction: column; max-height: 90vh;">
             <div class="modal-header">
                 <h2><i class="fas fa-file-excel"></i> Importar Productos desde Excel</h2>
                 <span class="modal-close" onclick="closeModal('importProductsModal')">&times;</span>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="overflow-y: auto; flex: 1;">
                 <div class="alert alert-info" style="margin-bottom: 16px;">
                     <i class="fas fa-info-circle"></i>
                     Sube un archivo <strong>.xlsx</strong> con las columnas:
